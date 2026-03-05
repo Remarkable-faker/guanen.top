@@ -1,0 +1,1082 @@
+<!doctype html> 
+ <html lang="zh-CN"> 
+ <head> 
+   <meta charset="utf-8" /> 
+   <meta name="viewport" content="width=device-width,initial-scale=1" /> 
+   <title>大富翁 - 多人联机版</title> 
+   <link rel="stylesheet" href="style.css"> 
+   <style>
+     /* 联机面板专属样式 - 适配新 UI */
+     .lobby-container {
+       max-width: 600px;
+       margin: 20px auto;
+       display: flex;
+       flex-direction: column;
+       gap: 15px;
+     }
+     .hidden { display: none !important; }
+     
+     .room-list {
+       max-height: 300px;
+       overflow-y: auto;
+       border: 1px solid #eee;
+       border-radius: 8px;
+       margin-bottom: 10px;
+     }
+     .room-item {
+       padding: 12px;
+       border-bottom: 1px solid #eee;
+       display: flex;
+       justify-content: space-between;
+       align-items: center;
+       cursor: pointer;
+       transition: background 0.2s;
+     }
+     .room-item:hover { background: #f0fdf4; }
+     .room-item:last-child { border-bottom: none; }
+     
+     .player-badge {
+       background: #f0fdf4;
+       padding: 6px 12px;
+       border-radius: 20px;
+       font-weight: bold;
+       color: #2f9d7a;
+       border: 2px solid #2f9d7a;
+       margin: 5px;
+       display: inline-block;
+     }
+     
+     /* 调整 gameArea 在未开始时隐藏 */
+     #gameMain { display: none; }
+     
+     /* 环境检查按钮 */
+     #envCheckBtn {
+       position: fixed;
+       top: 10px;
+       right: 10px;
+       z-index: 1000;
+       opacity: 0.7;
+       font-size: 12px;
+       padding: 4px 8px;
+       background: #fff;
+       border: 1px solid #ccc;
+       border-radius: 4px;
+       cursor: pointer;
+     }
+     #envCheckBtn:hover { opacity: 1; }
+     
+     /* 调试面板 */
+     #debugPanel {
+       display: none;
+       position: fixed;
+       bottom: 10px;
+       right: 10px;
+       background: rgba(0,0,0,0.8);
+       color: #0f0;
+       padding: 10px;
+       border-radius: 5px;
+       font-size: 10px;
+       max-width: 300px;
+       max-height: 200px;
+       overflow: auto;
+       z-index: 9999;
+     }
+     
+     .error-box {
+       background: #fff5f5;
+       border: 1px solid #feb2b2;
+       color: #c53030;
+       padding: 15px;
+       border-radius: 10px;
+       text-align: left;
+     }
+     .error-box pre {
+       background: #fff;
+       padding: 10px;
+       margin-top: 10px;
+       border-radius: 5px;
+       font-size: 0.75rem;
+       white-space: pre-wrap;
+       border: 1px solid #fed7d7;
+       max-height: 150px;
+       overflow: auto;
+     }
+     
+     /* 覆盖一些 style.css 里的默认显示 */
+     .topbar .menu.playing-only { display: none; }
+     body.is-playing .topbar .menu.lobby-only { display: none; }
+     body.is-playing .topbar .menu.playing-only { display: flex; }
+   </style>
+ </head> 
+ <body> 
+   <button id="envCheckBtn">检查环境</button>
+  <div id="debugPanel"></div>
+
+  <!-- 装饰性背景元素 -->
+  <div class="lobby-decor" id="lobbyDecor">
+    <div class="landmark">🗽</div>
+    <div class="landmark">🗼</div>
+    <div class="landmark">🏛️</div>
+    <div class="landmark">🏰</div>
+    <div class="landmark">⛩️</div>
+    <div class="landmark">🏯</div>
+    <div class="landmark">🗿</div>
+    <div class="landmark">🗼</div>
+    <div class="landmark">🎡</div>
+  </div>
+
+  <div id="app"> 
+    <header class="topbar"> 
+      <div class="brand"> 
+        <a href="../../index.php" style="color: inherit; text-decoration: none; margin-right: 15px; font-size: 24px;" title="返回首页">🏠</a>
+        <h1>大富翁</h1> 
+        <div class="subtitle" id="connectionStatus">多人联机版</div> 
+      </div> 
+      
+      <!-- 大厅菜单 -->
+      <div class="menu lobby-only">
+        <button id="refreshLobbyBtn">刷新大厅</button>
+      </div>
+
+      <!-- 游戏内菜单 -->
+      <div class="menu playing-only"> 
+        <button id="btnReset">退出房间</button> 
+      </div> 
+    </header> 
+
+    <main class="main"> 
+      <!-- 1. 登录/大厅区域 -->
+      <section id="lobbyArea" class="lobby-container">
+        <!-- 跳舞小人装饰 -->
+        <div class="dancer-wrap">
+          <div class="dancer">🕺</div>
+          <div class="dancer">💃</div>
+          <div class="dancer">🕴️</div>
+        </div>
+
+        <!-- 登录面板 -->
+        <div id="loginPanel" class="panel">
+          <h3>欢迎来到大富翁世界</h3>
+          <input type="text" id="usernameInput" placeholder="请输入您的游戏昵称" maxlength="10" style="width:100%; padding:15px; margin:10px 0; border:1px solid #ddd; border-radius:12px;">
+          <button id="loginBtn" style="width:100%; padding:15px; background:#2f9d7a; color:#fff; border:none; border-radius:12px; cursor:pointer;">开启冒险之旅</button>
+          <button id="testBtn" style="width:100%; padding:10px; background:#666; color:#fff; border:none; border-radius:12px; cursor:pointer; margin-top:15px; font-size:14px;">快速预览 UI (离线模式)</button>
+        </div>
+
+         <!-- 大厅面板 -->
+         <div id="lobbyPanel" class="panel hidden">
+           <h3>游戏大厅</h3>
+           <div class="room-list" id="roomList">
+             <div style="padding:20px; color:#999;">正在加载房间...</div>
+           </div>
+           <div style="display:flex; gap:10px;">
+             <input type="text" id="roomNameInput" placeholder="新房间名称" style="flex:1; padding:8px; border:1px solid #ddd; border-radius:6px;">
+             <button id="createRoomBtn" style="padding:8px 16px; background:#2f9d7a; color:#fff; border:none; border-radius:6px; cursor:pointer;">创建房间</button>
+           </div>
+         </div>
+
+         <!-- 等待面板 -->
+         <div id="waitingPanel" class="panel hidden">
+           <h3 id="waitingRoomName">房间: 载入中...</h3>
+           <p style="margin:15px 0; color:#666;">等待玩家加入 (至少2人)...</p>
+           <div id="waitingPlayerList" style="margin-bottom:15px;"></div>
+           <button id="startGameBtn" class="hidden" style="width:100%; padding:12px; background:#2f9d7a; color:#fff; border:none; border-radius:6px; cursor:pointer;">开始游戏</button>
+           <button id="leaveRoomBtn" style="width:100%; padding:10px; background:#ff4444; color:#fff; border:none; border-radius:6px; cursor:pointer; margin-top:10px;">离开房间</button>
+         </div>
+       </section>
+
+       <!-- 2. 游戏主区域 -->
+       <section id="gameMain" class="main" style="width:100%; margin:0; padding:0;">
+         <section class="board-wrap"> 
+           <div id="boardWrapper"> 
+             <div id="board" class="board" aria-label="大富翁棋盘"></div> 
+   
+             <!-- 棋盘中心区域：放置骰子和操作面板 -->
+             <div class="board-center">
+               <div id="centerDice" class="center-dice" aria-hidden="false"> 
+                 <div class="dice-container">
+                   <div id="dice1" class="cube">
+                     <div class="face face1"><span><i class="dot red"></i></span></div>
+                     <div class="face face2"><span><i class="dot"></i><i class="dot"></i></span></div>
+                     <div class="face face3"><span><i class="dot"></i><i class="dot"></i><i class="dot"></i></span></div>
+                     <div class="face face4"><span><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i></span></div>
+                     <div class="face face5"><span><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i></span></div>
+                     <div class="face face6"><span><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i></span></div>
+                   </div>
+                   <div id="dice2" class="cube">
+                     <div class="face face1"><span><i class="dot red"></i></span></div>
+                     <div class="face face2"><span><i class="dot"></i><i class="dot"></i></span></div>
+                     <div class="face face3"><span><i class="dot"></i><i class="dot"></i><i class="dot"></i></span></div>
+                     <div class="face face4"><span><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i></span></div>
+                     <div class="face face5"><span><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i></span></div>
+                     <div class="face face6"><span><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i></span></div>
+                   </div>
+                 </div>
+                 <div class="controls"> 
+                   <button id="rollBtn" disabled>掷骰子</button> 
+                   <button id="endBtn" disabled>结束回合</button> 
+                 </div> 
+               </div> 
+
+               <div class="center-panels">
+                 <div class="panel players-panel"> 
+                   <h3>玩家</h3> 
+                   <div id="players" class="players"></div> 
+                   <div class="turn"><b>当前回合：</b> <span id="curName">—</span></div> 
+                 </div> 
+         
+                 <div class="panel info-panel"> 
+                   <h3>地块信息</h3> 
+                   <div id="propName"><i>点击棋盘查看地块</i></div> 
+                   <div id="propInfo" class="prop-info"></div> 
+                   <div class="info-actions"> 
+                     <button id="buyBtn" disabled>购买</button> 
+                     <button id="mortBtn" disabled>抵押/赎回</button> 
+                     <button id="buildBtn" disabled>建房</button> 
+                     <button id="upgradeBtn" disabled>升级大房</button> 
+                     <button id="aucBtn">拍卖</button> 
+                   </div> 
+                 </div> 
+         
+                 <div class="panel log-panel"> 
+                   <h3>操作记录</h3> 
+                   <div id="log" class="log" aria-live="polite"></div> 
+                 </div> 
+         
+                 <div class="panel chat-panel"> 
+                   <h3>聊天</h3> 
+                   <div id="chat" class="chat" aria-live="polite"></div> 
+                   <div class="chatbar"> 
+                     <input id="chatInput" placeholder="输入..." /> 
+                     <button id="chatSend">发送</button> 
+                   </div> 
+                 </div> 
+               </div>
+             </div> 
+           </div> 
+         </section> 
+       </section>
+     </main> 
+ 
+     <!-- auction modal --> 
+     <div id="auctionModal" class="modal hidden" role="dialog" aria-modal="true"> 
+       <div class="modal-content"> 
+         <h3>拍卖中：<span id="aucTileName"></span></h3> 
+         <div>当前最高：¥<span id="aucHigh">0</span></div> 
+         <div>出价：<input id="aucBid" type="number" value="1000" /></div> 
+         <div class="modal-actions" style="margin-top:10px; display:flex; gap:10px;"> 
+           <button id="aucBidBtn" style="flex:1; padding:8px; background:#2f9d7a; color:#fff; border:none; border-radius:4px;">出价</button> 
+           <button id="aucClose" style="flex:1; padding:8px; background:#666; color:#fff; border:none; border-radius:4px;">关闭</button> 
+         </div> 
+         <div id="aucLog" class="log" style="height:120px; margin-top:8px;"></div> 
+       </div> 
+     </div> 
+ 
+     <footer class="footer"> 
+       <div> 
+         多人联机版 · 实时同步 · 鹏鹏大富翁 
+       </div> 
+     </footer> 
+   </div> 
+ 
+   <script>
+     // --- 核心配置 ---
+     const API_URL = '../../api/monopoly_api.php';
+     const PLAYER_COLORS = ["#e74c3c","#3498db","#2ecc71","#9b59b6","#e67e22","#1abc9c","#f1c40f","#34495e"];
+     const DICE_STRIP_ITEM_H = 32;
+     
+     // 40格棋盘数据（参考 game.js）
+     const CANDIDATES = ["纽约","旧金山","芝加哥","洛杉矶","伦敦","曼切斯特","上海","北京","香港","深圳","杭州","斑马小镇","巴黎","东京","大阪","神奈川","琦玉","新加坡","名古屋","横滨","札幌","阿尔卑斯山脉","悉尼","墨尔本","布里斯班","阿德莱德","黄金海岸","堪培拉","奥克兰","惠灵顿","皇后镇","多伦多","温哥华","蒙特利尔","渥太华","米兰","罗马","威尼斯","巴塞罗那","首尔"];
+     const CORNERS = [0, 10, 20, 30];
+     const CHANCE = [7, 22];
+     const TRANSPORT_POS = {5:'bus', 15:'air', 25:'metro', 35:'ferry'};
+     
+     // --- 状态变量 ---
+    let username = "";
+    let roomId = null;
+    let isCreator = false;
+    let roomState = null;
+    let playersData = [];
+    let myState = { coins: 15000, position: 0, properties: [], in_jail: 0 }; 
+    let syncTimer = null;
+    let isMoving = false;
+    let lastChatCount = 0;
+    let selectedTileIdx = -1;
+    let tileState = []; 
+
+    // 移动端检查
+    function checkMobile() {
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+      if (isMobile) {
+        // 使用简单的提示，或者稍后在页面加载后显示美化弹窗
+        setTimeout(() => {
+          alert("💡 检测到您正在使用移动设备。为了获得最佳的游戏画面和操作体验，建议您前往 PC 端访问。");
+        }, 1000);
+      }
+    }
+
+    // 全局错误捕获
+    window.onerror = function(msg, url, lineNo, columnNo, error) {
+      const debug = document.getElementById('debugPanel');
+      if (debug) {
+        debug.style.display = 'block';
+        debug.innerHTML += `<div>[Error] ${msg} at line ${lineNo}</div>`;
+      }
+      return false;
+    };
+
+    // --- 初始化棋盘数据 ---
+    function initTileData() {
+      tileState = Array.from({length:40}, (_, i) => ({
+        id: i,
+        type: CORNERS.includes(i) ? 'corner' : (CHANCE.includes(i) ? 'chance' : (TRANSPORT_POS[i] ? 'transport' : 'city')),
+        name: '',
+        price: 0,
+        group: null
+      }));
+      
+      tileState[0].name = '起点'; tileState[10].name = '监狱'; tileState[20].name = '停车'; tileState[30].name = '进监狱';
+      CHANCE.forEach(i => tileState[i].name = '机遇');
+      
+      let cityIdx = 0;
+      for(let i=0; i<40; i++) {
+        if(tileState[i].type === 'city') {
+          tileState[i].name = CANDIDATES[cityIdx % CANDIDATES.length];
+          tileState[i].price = 800 + (Math.floor(i/4) * 200);
+          tileState[i].group = Math.floor(cityIdx / 3);
+          cityIdx++;
+        } else if(tileState[i].type === 'transport') {
+          tileState[i].name = TRANSPORT_POS[i].toUpperCase();
+          tileState[i].price = 1500;
+        }
+      }
+    }
+
+     // --- UI 工具 ---
+     function $(id) { return document.getElementById(id); }
+     function logMsg(msg) {
+       const el = $('log');
+       const ts = new Date().toLocaleTimeString();
+       const div = document.createElement('div');
+       div.innerHTML = `<span style="color:#888">[${ts}]</span> ${msg}`;
+       el.prepend(div);
+     }
+
+     // --- API 请求 ---
+     async function apiFetch(url, options = {}) {
+       try {
+         // 强制包含凭据以保持 Session
+         options.credentials = 'include';
+         const res = await fetch(url, options);
+         const text = await res.text();
+         try {
+           return JSON.parse(text);
+         } catch (e) {
+           console.error("API Error:", text);
+           return { success: false, message: "数据格式错误", raw: text };
+         }
+       } catch (e) {
+         return { success: false, message: "网络错误: " + e.message };
+       }
+     }
+
+     // --- 登录与大厅逻辑 ---
+     window.onload = () => {
+       checkMobile();
+       const saved = localStorage.getItem('monopoly_username');
+       if (saved) {
+         $('usernameInput').value = saved;
+         username = saved;
+         showLobby();
+       }
+       initTileData();
+       // 3D 骰子初始化不需要特殊逻辑，已经在 HTML/CSS 中定义
+     };
+
+     $('loginBtn').onclick = () => {
+       username = $('usernameInput').value.trim();
+       if (!username) return alert("请输入昵称");
+       localStorage.setItem('monopoly_username', username);
+       showLobby();
+     };
+
+     $('testBtn').onclick = () => {
+       username = $('usernameInput').value.trim() || "测试玩家";
+       roomId = 999;
+       roomState = { status: 'playing', current_turn: username, room_name: '测试房间' };
+       playersData = [{ username: username, coins: 15000, position: 0, properties: [], in_jail: 0 }];
+       initGameUI();
+       updateGameUI();
+     };
+
+     async function showLobby() {
+       $('loginPanel').classList.add('hidden');
+       $('lobbyPanel').classList.remove('hidden');
+       $('waitingPanel').classList.add('hidden');
+       $('gameMain').style.display = 'none';
+       $('lobbyArea').classList.remove('hidden');
+       $('lobbyDecor').style.display = 'block';
+       document.body.classList.remove('is-playing');
+
+       const list = $('roomList');
+       list.innerHTML = '<div style="padding:10px;">正在加载房间...</div>';
+       
+       try {
+         const data = await apiFetch(`${API_URL}?action=list_rooms`);
+         if (data.success) {
+           list.innerHTML = "";
+           if (data.rooms.length === 0) {
+             list.innerHTML = '<div style="padding:10px; color:#999;">暂无房间</div>';
+           } else {
+             data.rooms.forEach(room => {
+               const div = document.createElement('div');
+               div.className = 'room-item';
+               div.innerHTML = `<div><b>${room.room_name}</b> <small>(${room.created_by})</small></div><div>${room.player_count}人 | ${room.status}</div>`;
+               div.onclick = () => joinRoom(room.id);
+               list.appendChild(div);
+             });
+           }
+         } else {
+           list.innerHTML = `<div class="error-box">无法连接到服务器<br><small>${data.message}</small><br><button onclick="location.reload()" style="margin-top:10px; padding:4px 8px;">重试</button></div>`;
+         }
+       } catch (e) {
+         list.innerHTML = `<div class="error-box">网络异常: ${e.message}</div>`;
+       }
+     }
+
+     $('refreshLobbyBtn').onclick = showLobby;
+
+     async function createRoom() {
+       const name = $('roomNameInput').value.trim();
+       if (!name) return alert("请输入房间名");
+       const data = await apiFetch(`${API_URL}?action=create_room`, {
+         method: 'POST',
+         body: JSON.stringify({ room_name: name, username: username })
+       });
+       if (data.success) {
+         roomId = data.room_id;
+         isCreator = true;
+         enterWaiting();
+       }
+     }
+     $('createRoomBtn').onclick = createRoom;
+
+     async function joinRoom(id) {
+       const data = await apiFetch(`${API_URL}?action=join_room`, {
+         method: 'POST',
+         body: JSON.stringify({ room_id: id, username: username })
+       });
+       if (data.success) {
+         roomId = id;
+         isCreator = false;
+         enterWaiting();
+       }
+     }
+
+     function enterWaiting() {
+       $('lobbyPanel').classList.add('hidden');
+       $('waitingPanel').classList.remove('hidden');
+       startSync();
+     }
+
+     $('startGameBtn').onclick = async () => {
+       const data = await apiFetch(`${API_URL}?action=start_game`, {
+         method: 'POST',
+         body: JSON.stringify({ room_id: roomId, username: username })
+       });
+       if (!data.success) alert(data.message);
+     };
+
+     $('leaveRoomBtn').onclick = () => {
+       if (syncTimer) clearInterval(syncTimer);
+       showLobby();
+     };
+
+     $('btnReset').onclick = () => {
+       if (confirm("确定退出房间吗？")) {
+         if (syncTimer) clearInterval(syncTimer);
+         location.reload();
+       }
+     };
+
+     // --- 同步核心 ---
+     function startSync() {
+       if (syncTimer) clearInterval(syncTimer);
+       syncTimer = setInterval(sync, 2000);
+       sync();
+     }
+
+     async function sync() {
+       const data = await apiFetch(`${API_URL}?action=get_room_state&room_id=${roomId}&username=${username}`);
+       if (!data.success) return;
+
+       roomState = data.room;
+       playersData = data.players;
+       isCreator = (roomState.created_by === username);
+
+       const me = playersData.find(p => p.username === username);
+      if (me) {
+        myState.coins = parseInt(me.coins);
+        myState.position = parseInt(me.position);
+        myState.in_jail = parseInt(me.in_jail || 0);
+        // 规格化 properties，确保都是对象格式
+        myState.properties = (me.properties || []).map(p => {
+          if (typeof p === 'object') return p;
+          return { id: p, b: 0, big: false, m: false };
+        });
+      }
+
+      if (roomState.chat && roomState.chat.length > lastChatCount) {
+        updateChatUI(roomState.chat);
+        lastChatCount = roomState.chat.length;
+      }
+
+       if (roomState.status === 'waiting') {
+         updateWaitingUI();
+       } else if (roomState.status === 'playing') {
+         if ($('gameMain').style.display === 'none') initGameUI();
+         updateGameUI();
+       }
+     }
+
+     function updateWaitingUI() {
+       $('waitingRoomName').textContent = `房间: ${roomState.room_name}`;
+       const list = $('waitingPlayerList');
+       list.innerHTML = "";
+       playersData.forEach(p => {
+         const badge = document.createElement('span');
+         badge.className = 'player-badge';
+         badge.textContent = p.username + (p.username === roomState.created_by ? " (房主)" : "");
+         list.appendChild(badge);
+       });
+       
+       if (isCreator) {
+         $('startGameBtn').classList.remove('hidden');
+         $('startGameBtn').disabled = playersData.length < 2;
+         $('startGameBtn').textContent = playersData.length < 2 ? "等待玩家 (需2人)" : "开始游戏";
+       }
+     }
+
+    // --- 游戏渲染 ---
+    function coordToIndex(r, c) {
+      const W = 13, H = 9;
+      if (r === H - 1) return c; // 底部: 0-12
+      if (c === W - 1 && r < H - 1 && r > 0) return 12 + (H - 1 - r); // 右侧: 13-19
+      if (r === 0) return 20 + (W - 1 - c); // 顶部: 20-32
+      if (c === 0 && r > 0 && r < H - 1) return 32 + r; // 左侧: 33-39
+      return null;
+    }
+
+    function initGameUI() {
+      $('lobbyArea').classList.add('hidden');
+      // 保持背景装饰可见
+      const decor = $('lobbyDecor');
+      // 清空旧的并重新添加，防止重复叠加
+      decor.innerHTML = `
+        <div class="landmark">🗽</div>
+        <div class="landmark">🗼</div>
+        <div class="landmark">🏛️</div>
+        <div class="landmark">🏰</div>
+        <div class="landmark">⛩️</div>
+        <div class="landmark">🏯</div>
+        <div class="landmark">🗿</div>
+        <div class="landmark">🗼</div>
+        <div class="landmark">🎡</div>
+        <div class="game-icon" style="left:10%; top:20%">💰</div>
+        <div class="game-icon" style="left:85%; top:15%">🏠</div>
+        <div class="game-icon" style="left:5%; top:70%">🚗</div>
+        <div class="game-icon" style="right:10%; bottom:20%">🎩</div>
+        <div class="game-icon" style="left:45%; top:5%">💎</div>
+        <div class="game-icon" style="left:20%; top:40%; font-size:40px;">🏦</div>
+        <div class="game-icon" style="right:25%; top:60%; font-size:35px;">📜</div>
+        <div class="game-icon" style="left:70%; bottom:10%; font-size:45px;">🎟️</div>
+      `;
+      
+      $('gameMain').style.display = 'flex';
+      document.body.classList.add('is-playing');
+      
+      const board = $('board');
+      board.innerHTML = '';
+      const W = 13, H = 9;
+      for (let r = 0; r < H; r++) {
+        for (let c = 0; c < W; c++) {
+          if (!(r === 0 || r === H - 1 || c === 0 || c === W - 1)) continue;
+          const idx = coordToIndex(r, c);
+          if (idx === null) continue;
+          const s = tileState[idx];
+          const cell = document.createElement('div');
+          cell.className = 'cell' + (s.type === 'corner' ? ' corner' : '');
+          cell.style.left = `calc(${c} * var(--cell-w))`;
+          cell.style.top = `calc(${r} * var(--cell-h))`;
+          cell.onclick = () => selectTile(idx);
+          cell.id = 'cell-' + idx;
+
+          let html = `
+            <div class="owner-badge" id="owner-${idx}" style="display:none"></div>
+            <div class="title">${s.name}</div>
+          `;
+          if (s.price > 0) html += `<div class="price">¥${s.price}</div>`;
+          html += `<div class="token-box" id="token-box-${idx}"></div>`;
+          cell.innerHTML = html;
+          board.appendChild(cell);
+        }
+      }
+      logMsg("游戏已开始！初始资金 ¥15000");
+    }
+
+    function updateGameUI() {
+      if (!roomState || !playersData) return;
+      
+      const isMyTurn = (roomState.current_turn === username);
+      const rollBtn = $('rollBtn');
+      const endBtn = $('endBtn');
+      const centerDice = $('centerDice');
+      
+      // 1. 优化骰子显示逻辑
+      if (!isMyTurn || isMoving) {
+        centerDice.classList.add('disabled');
+        rollBtn.disabled = true;
+        endBtn.disabled = true;
+      } else {
+        centerDice.classList.remove('disabled');
+        // 如果 turn_status 缺失，默认为 idle
+        const status = roomState.turn_status || 'idle';
+        rollBtn.disabled = (status !== 'idle');
+        endBtn.disabled = (status !== 'rolled');
+      }
+
+      $('curName').textContent = roomState.current_turn;
+      if (isMyTurn) $('curName').style.color = '#2f9d7a';
+      else $('curName').style.color = '#333';
+
+      // 2. 更新玩家面板列表
+      const playersEl = $('players');
+      playersEl.innerHTML = "";
+      playersData.forEach((p, i) => {
+        const isTurn = roomState.current_turn === p.username;
+        const div = document.createElement('div');
+        div.className = `player ${isTurn ? 'current-turn' : ''}`;
+        div.innerHTML = `
+          <div class="meta">
+            <div class="avatar" style="background:${PLAYER_COLORS[i % PLAYER_COLORS.length]}"></div>
+            <div>
+              <div style="font-weight:700">${p.username} ${p.username === username ? '(我)' : ''}</div>
+              <div style="font-size:11px;color:#666">¥${p.coins}</div>
+            </div>
+          </div>
+        `;
+        playersEl.appendChild(div);
+      });
+
+      // 3. 更新棋子位置
+      document.querySelectorAll('.token-box').forEach(b => b.innerHTML = '');
+      playersData.forEach((p, i) => {
+        const box = $(`token-box-${p.position}`);
+        if (box) {
+          const t = document.createElement('div');
+          t.className = 'token';
+          t.style.background = PLAYER_COLORS[i % PLAYER_COLORS.length];
+          t.textContent = p.username ? p.username[0].toUpperCase() : '?';
+          box.appendChild(t);
+        }
+      });
+
+      // 4. 更新所有权和建筑
+      document.querySelectorAll('.house-small, .house-big').forEach(h => h.remove());
+      tileState.forEach(tile => {
+        const badge = $(`owner-${tile.id}`);
+        if (badge) {
+          const owner = playersData.find(p => {
+            const props = Array.isArray(p.properties) ? p.properties : [];
+            return props.some(prop => (typeof prop === 'object' ? prop.id : prop) === tile.id);
+          });
+          
+          if (owner) {
+            badge.style.display = 'block';
+            badge.textContent = owner.username.substring(0, 2);
+            
+            const props = Array.isArray(owner.properties) ? owner.properties : [];
+            const propData = props.find(prop => (typeof prop === 'object' ? prop.id : prop) === tile.id);
+            
+            if (propData && typeof propData === 'object') {
+              const cell = badge.closest('.cell');
+              if (propData.big) {
+                const hb = document.createElement('div'); hb.className='house-big'; cell.appendChild(hb);
+              } else if (propData.b > 0) {
+                for(let k=0; k<propData.b; k++) {
+                  const hs = document.createElement('div'); hs.className='house-small'; cell.appendChild(hs);
+                }
+              }
+              if (propData.m) badge.title = "已抵押";
+            }
+          } else {
+            badge.style.display = 'none';
+          }
+        }
+      });
+
+      if (selectedTileIdx >= 0) selectTile(selectedTileIdx);
+    }
+
+     // --- 3D 骰子逻辑 ---
+     function rollVisual(r1, r2, cb) {
+       const d1 = $('dice1'), d2 = $('dice2');
+       
+       // 随机旋转次数，增加视觉真实感
+       const rotX1 = Math.floor(Math.random() * 4 + 4) * 360;
+       const rotY1 = Math.floor(Math.random() * 4 + 4) * 360;
+       const rotX2 = Math.floor(Math.random() * 4 + 4) * 360;
+       const rotY2 = Math.floor(Math.random() * 4 + 4) * 360;
+
+       // 目标面对应的旋转角度
+       const targets = {
+         1: { x: 0, y: 0 },
+         2: { x: -180, y: 0 },
+         3: { x: 0, y: -90 },
+         4: { x: 0, y: 90 },
+         5: { x: -90, y: 0 },
+         6: { x: 90, y: 0 }
+       };
+
+       const t1 = targets[r1];
+       const t2 = targets[r2];
+
+       d1.style.transform = `rotateX(${rotX1 + t1.x}deg) rotateY(${rotY1 + t1.y}deg)`;
+       d2.style.transform = `rotateX(${rotX2 + t2.x}deg) rotateY(${rotY2 + t2.y}deg)`;
+
+       setTimeout(() => {
+         if (cb) cb();
+       }, 1550); // 与 CSS transition 时间匹配
+     }
+
+    $('rollBtn').onclick = () => {
+      if (isMoving) return;
+      
+      if (myState.in_jail > 0) {
+        const choice = confirm(`你还在监狱中 (剩余 ${myState.in_jail} 回合)。支付 ¥500 立即出狱并行动？`);
+        if (choice) {
+          if (myState.coins >= 500) {
+            myState.coins -= 500;
+            myState.in_jail = 0;
+            logMsg("支付 ¥500 出狱");
+          } else {
+            alert("金币不足");
+            return;
+          }
+        } else {
+          myState.in_jail--;
+          logMsg(`在监狱中等待... 剩余 ${myState.in_jail} 回合`);
+          // 直接同步状态并结束回合
+          apiFetch(`${API_URL}?action=sync_state`, {
+            method: 'POST',
+            body: JSON.stringify({
+              username: username,
+              room_id: roomId,
+              coins: myState.coins,
+              position: myState.position,
+              properties: myState.properties,
+              in_jail: myState.in_jail,
+              pass_turn: true
+            })
+          }).then(() => sync());
+          return;
+        }
+      }
+
+      $('rollBtn').disabled = true;
+      const r1 = 1 + Math.floor(Math.random() * 6);
+      const r2 = 1 + Math.floor(Math.random() * 6);
+      rollVisual(r1, r2, () => moveMe(r1 + r2));
+    };
+
+    $('endBtn').onclick = async () => {
+      if (isMoving) return;
+      await apiFetch(`${API_URL}?action=sync_state`, {
+        method: 'POST',
+        body: JSON.stringify({
+          username: username,
+          room_id: roomId,
+          coins: myState.coins,
+          position: myState.position,
+          properties: myState.properties,
+          in_jail: myState.in_jail,
+          pass_turn: true
+        })
+      });
+      sync();
+    };
+
+     async function moveMe(steps) {
+      isMoving = true;
+      logMsg(`掷出了 ${steps} 点`);
+      let pos = myState.position;
+      for (let i = 0; i < steps; i++) {
+        pos = (pos + 1) % 40;
+        myState.position = pos;
+        if (pos === 0) {
+          myState.coins += 2000;
+          logMsg("经过起点，获得 ¥2000");
+        }
+        updateGameUI();
+        await new Promise(r => setTimeout(r, 200));
+      }
+
+      const tile = tileState[pos];
+      let payTo = '', amount = 0;
+
+      if (tile.type === 'city' || tile.type === 'transport') {
+        // 查找所有者
+        const owner = playersData.find(p => p.properties.some(prop => (typeof prop === 'object' ? prop.id : prop) === tile.id));
+        
+        if (owner && owner.username !== username) {
+          const propData = owner.properties.find(prop => (typeof prop === 'object' ? prop.id : prop) === tile.id);
+          const isMortgaged = typeof propData === 'object' && propData.m;
+          
+          if (!isMortgaged) {
+            // 计算租金
+            if (tile.type === 'city') {
+              let multiplier = 0.1; // 基础 10%
+              if (typeof propData === 'object') {
+                if (propData.big) multiplier = 2.0;
+                else multiplier += propData.b * 0.3;
+              }
+              amount = Math.floor(tile.price * multiplier);
+            } else {
+              amount = Math.floor(tile.price * 0.4); // 运输业固定 40%
+            }
+
+            myState.coins -= amount;
+            payTo = owner.username;
+            logMsg(`支付租金 ¥${amount} 给 ${payTo}`);
+            alert(`停在 ${payTo} 的领地 [${tile.name}]，支付 ¥${amount}`);
+          } else {
+            logMsg(`${tile.name} 已被抵押，无需支付租金`);
+          }
+        } else if (!owner) {
+          if (myState.coins >= tile.price && confirm(`是否购买 ${tile.name} (¥${tile.price})?`)) {
+            myState.coins -= tile.price;
+            myState.properties.push({ id: tile.id, b: 0, big: false, m: false });
+            logMsg(`购买了 ${tile.name}`);
+          }
+        }
+      } else if (tile.type === 'chance') {
+        const gain = (Math.random() > 0.5 ? 1 : -1) * (Math.floor(Math.random() * 10) + 1) * 200;
+        myState.coins += gain;
+        const m = gain > 0 ? `获得 ¥${gain}` : `损失 ¥${Math.abs(gain)}`;
+        logMsg(`机遇：${m}`);
+        alert(`机遇事件：${m}`);
+      } else if (tile.id === 30) {
+        // 进监狱
+        myState.position = 10;
+        myState.in_jail = 3;
+        logMsg("被送往监狱！");
+        alert("你被送往监狱！");
+      }
+
+      // 同步状态并结束回合
+      await apiFetch(`${API_URL}?action=sync_state`, {
+        method: 'POST',
+        body: JSON.stringify({
+          username: username,
+          room_id: roomId,
+          coins: myState.coins,
+          position: myState.position,
+          properties: myState.properties,
+          in_jail: myState.in_jail,
+          pass_turn: true,
+          pay_to: payTo,
+          amount: amount
+        })
+      });
+
+      isMoving = false;
+      sync();
+    }
+
+    function selectTile(idx) {
+      selectedTileIdx = idx;
+      const s = tileState[idx];
+      const isMyTurn = roomState && roomState.current_turn === username;
+      const owner = playersData.find(p => p.properties.some(prop => (typeof prop === 'object' ? prop.id : prop) === idx));
+      const isMine = owner && owner.username === username;
+      const propData = isMine ? myState.properties.find(p => p.id === idx) : (owner ? owner.properties.find(p => (typeof p === 'object' ? p.id : p) === idx) : null);
+
+      $('propName').innerHTML = `<b>${s.name}</b>`;
+      let info = `类型: ${s.type}<br>价格: ¥${s.price}<br>`;
+      info += `拥有者: ${owner ? (owner.username + (isMine ? " (我)" : "")) : '无'}<br>`;
+      
+      if (owner && typeof propData === 'object') {
+        if (s.type === 'city') {
+          info += `等级: ${propData.big ? '大厦' : (propData.b + ' 级')}<br>`;
+        }
+        if (propData.m) info += `<span style="color:red">状态: 已抵押</span><br>`;
+      }
+      $('propInfo').innerHTML = info;
+      
+      // 按钮状态
+      $('buyBtn').disabled = !isMyTurn || !!owner || (s.type !== 'city' && s.type !== 'transport') || myState.coins < s.price;
+      $('buildBtn').disabled = !isMyTurn || !isMine || s.type !== 'city' || propData.big || propData.b >= 4 || propData.m || myState.coins < 1000;
+      $('upgradeBtn').disabled = !isMyTurn || !isMine || s.type !== 'city' || propData.big || propData.b < 4 || propData.m || myState.coins < 3000;
+      $('mortBtn').disabled = !isMyTurn || !isMine;
+      $('mortBtn').textContent = (propData && propData.m) ? "解押" : "抵押";
+    }
+
+    $('buyBtn').onclick = async () => {
+      if (selectedTileIdx < 0 || isMoving) return;
+      const s = tileState[selectedTileIdx];
+      if (myState.coins >= s.price) {
+        myState.coins -= s.price;
+        myState.properties.push({ id: s.id, b: 0, big: false, m: false });
+        logMsg(`购买了 ${s.name}`);
+        await syncStateOnly();
+        updateGameUI();
+        selectTile(selectedTileIdx);
+      }
+    };
+
+    $('buildBtn').onclick = async () => {
+      if (selectedTileIdx < 0 || isMoving) return;
+      const prop = myState.properties.find(p => p.id === selectedTileIdx);
+      if (prop && prop.b < 4 && myState.coins >= 1000) {
+        myState.coins -= 1000;
+        prop.b++;
+        logMsg(`在 ${tileState[selectedTileIdx].name} 建造了一座小房子`);
+        await syncStateOnly();
+        updateGameUI();
+        selectTile(selectedTileIdx);
+      }
+    };
+
+    $('upgradeBtn').onclick = async () => {
+      if (selectedTileIdx < 0 || isMoving) return;
+      const prop = myState.properties.find(p => p.id === selectedTileIdx);
+      if (prop && prop.b === 4 && myState.coins >= 3000) {
+        myState.coins -= 3000;
+        prop.b = 0;
+        prop.big = true;
+        logMsg(`在 ${tileState[selectedTileIdx].name} 升级了大厦！`);
+        await syncStateOnly();
+        updateGameUI();
+        selectTile(selectedTileIdx);
+      }
+    };
+
+    $('mortBtn').onclick = async () => {
+      if (selectedTileIdx < 0 || isMoving) return;
+      const prop = myState.properties.find(p => p.id === selectedTileIdx);
+      if (prop) {
+        if (prop.m) {
+          // 解押
+          const cost = Math.floor(tileState[selectedTileIdx].price * 0.6);
+          if (myState.coins >= cost) {
+            myState.coins -= cost;
+            prop.m = false;
+            logMsg(`解押了 ${tileState[selectedTileIdx].name}`);
+          } else {
+            alert("金币不足以解押");
+            return;
+          }
+        } else {
+          // 抵押
+          const gain = Math.floor(tileState[selectedTileIdx].price * 0.5);
+          myState.coins += gain;
+          prop.m = true;
+          logMsg(`抵押了 ${tileState[selectedTileIdx].name}，获得 ¥${gain}`);
+        }
+        await syncStateOnly();
+        updateGameUI();
+        selectTile(selectedTileIdx);
+      }
+    };
+
+    // 拍卖逻辑
+    $('aucBtn').onclick = () => {
+      if (selectedTileIdx < 0) return alert("请先选中一个地块");
+      const s = tileState[selectedTileIdx];
+      const owner = playersData.find(p => p.properties.some(prop => (typeof prop === 'object' ? prop.id : prop) === selectedTileIdx));
+      if (owner) return alert("该地块已有主人，无法拍卖");
+      
+      $('aucTileName').textContent = s.name;
+      $('aucHigh').textContent = Math.floor(s.price * 0.8);
+      $('auctionModal').classList.remove('hidden');
+      logMsg(`对 ${s.name} 发起了拍卖`);
+    };
+
+    $('aucClose').onclick = () => {
+      $('auctionModal').classList.add('hidden');
+    };
+
+    $('aucBidBtn').onclick = () => {
+      const bid = parseInt($('aucBid').value);
+      const current = parseInt($('aucHigh').textContent);
+      if (bid > current && bid <= myState.coins) {
+        $('aucHigh').textContent = bid;
+        const div = document.createElement('div');
+        div.textContent = `${username} 出价 ¥${bid}`;
+        $('aucLog').prepend(div);
+      } else {
+        alert("出价无效或金币不足");
+      }
+    };
+
+    async function syncStateOnly() {
+      await apiFetch(`${API_URL}?action=sync_state`, {
+        method: 'POST',
+        body: JSON.stringify({
+          username: username,
+          room_id: roomId,
+          coins: myState.coins,
+          position: myState.position,
+          properties: myState.properties,
+          pass_turn: false
+        })
+      });
+    }
+
+    function updateChatUI(chatList) {
+      const chatEl = $('chat');
+      chatEl.innerHTML = "";
+      chatList.forEach(msg => {
+        const div = document.createElement('div');
+        div.className = `chat-message ${msg.u === username ? 'chat-right' : 'chat-left'}`;
+        div.innerHTML = `<div class="chat-user">${msg.u}</div><div class="chat-text">${msg.m}</div>`;
+        chatEl.appendChild(div);
+      });
+      chatEl.scrollTop = chatEl.scrollHeight;
+    }
+
+    // 聊天逻辑
+    $('chatSend').onclick = async () => {
+      const msg = $('chatInput').value.trim();
+      if (!msg) return;
+      
+      const data = await apiFetch(`${API_URL}?action=send_chat`, {
+        method: 'POST',
+        body: JSON.stringify({
+          room_id: roomId,
+          username: username,
+          message: msg
+        })
+      });
+      
+      if (data.success) {
+        $('chatInput').value = '';
+        sync(); // 立即同步一次
+      }
+    };
+    
+    $('chatInput').onkeypress = (e) => {
+      if (e.key === 'Enter') $('chatSend').click();
+    };
+
+     // 环境自检
+     $('envCheckBtn').onclick = async () => {
+       const data = await apiFetch(`${API_URL}?action=env_check`);
+       if (data.success) {
+         alert(`环境正常！PHP: ${data.php_version}`);
+       } else {
+         alert("环境异常: " + data.message);
+       }
+     };
+   </script> 
+ </body> 
+ </html>

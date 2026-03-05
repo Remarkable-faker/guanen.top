@@ -1,0 +1,232 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Microsoft YaHei', Arial, sans-serif;
+    background-color: #000;
+    color: #fff;
+    overflow: hidden;
+}
+
+#game-container {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    background: linear-gradient(to bottom, #001133, #000000);
+}
+
+#game-canvas {
+    display: block;
+    background-color: transparent;
+}
+
+/* UI元素 */
+#ui {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 10;
+}
+
+#score {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+#level {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+#wave {
+    position: absolute;
+    top: 60px;
+    right: 20px;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+#lives {
+    position: absolute;
+    top: 60px;
+    left: 20px;
+    font-size: 20px;
+}
+
+#hp-bar {
+    position: absolute;
+    top: 100px;
+    left: 20px;
+    width: 200px;
+    height: 20px;
+    background-color: #333;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+#hp-fill {
+    height: 100%;
+    background-color: #00ff00;
+    transition: width 0.3s ease;
+}
+
+#energy-bar {
+    position: absolute;
+    top: 140px;
+    left: 20px;
+    width: 200px;
+    height: 20px;
+    background-color: #333;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+#energy-fill {
+    height: 100%;
+    background-color: #0066ff;
+    transition: width 0.3s ease;
+}
+
+#game-over {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    background-color: rgba(0, 0, 0, 0.8);
+    padding: 40px;
+    border-radius: 10px;
+    pointer-events: auto;
+    display: none;
+}
+
+#game-over h2 {
+    font-size: 36px;
+    margin-bottom: 20px;
+}
+
+#final-score {
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+.button {
+    padding: 15px 30px;
+    font-size: 20px;
+    font-weight: bold;
+    background-color: #ff6600;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin: 10px;
+    pointer-events: auto;
+    transition: background-color 0.3s ease;
+}
+
+.button:hover {
+    background-color: #ff8800;
+}
+
+#start-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    pointer-events: auto;
+}
+
+#start-screen h1 {
+    font-size: 48px;
+    margin-bottom: 40px;
+    color: #ff6600;
+}
+
+#difficulty-selector {
+    margin-bottom: 30px;
+}
+
+.difficulty-btn {
+    padding: 10px 20px;
+    font-size: 18px;
+    margin: 0 10px;
+    border: 2px solid #fff;
+    background-color: transparent;
+    color: #fff;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.difficulty-btn:hover {
+    background-color: #fff;
+    color: #000;
+}
+
+.difficulty-btn.selected {
+    background-color: #ff6600;
+    border-color: #ff6600;
+    color: #fff;
+}
+
+#pause-menu {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    background-color: rgba(0, 0, 0, 0.8);
+    padding: 40px;
+    border-radius: 10px;
+    pointer-events: auto;
+    display: none;
+}
+
+#skill-btn {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background-color: rgba(0, 102, 255, 0.8);
+    color: #fff;
+    border: 2px solid #fff;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    pointer-events: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+#skill-btn:hover {
+    background-color: rgba(0, 102, 255, 1);
+    transform: scale(1.1);
+}
+
+#skill-btn:disabled {
+    background-color: rgba(100, 100, 100, 0.5);
+    cursor: not-allowed;
+    transform: none;
+}

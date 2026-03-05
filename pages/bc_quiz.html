@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>漂流成员准入测试 · 冠恩书屋</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: "Source Han Serif SC", "Noto Serif SC", "Songti SC", serif;
+            background: #f5f4f2;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        .quiz-container {
+            background: #fff;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            width: 100%;
+            max-width: 800px;
+        }
+        .header { text-align: center; margin-bottom: 40px; }
+        .header h1 { font-size: 26px; color: #6b705c; margin-bottom: 12px; }
+        .header p { font-size: 15px; color: #888; line-height: 1.6; }
+        
+        .question-item { margin-bottom: 35px; border-bottom: 1px solid #f0f0f0; padding-bottom: 25px; }
+        .question-item:last-child { border-bottom: none; }
+        .question-title { font-size: 17px; font-weight: 600; color: #444; margin-bottom: 15px; display: block; }
+        .question-title span { color: #6b705c; margin-right: 8px; }
+        
+        .options-group { display: flex; flex-direction: column; gap: 12px; }
+        .option-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            padding: 10px 15px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            transition: all 0.2s;
+            font-size: 15px;
+        }
+        .option-label:hover { background: #f9f9f9; border-color: #6b705c; }
+        .option-label input { cursor: pointer; }
+        
+        textarea {
+            width: 100%;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            min-height: 100px;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+        textarea:focus { outline: none; border-color: #6b705c; }
+        
+        .btn-submit {
+            width: 100%;
+            padding: 16px;
+            background: #6b705c;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background 0.3s;
+        }
+        .btn-submit:hover { background: #a5a58d; }
+
+        @media (max-width: 480px) {
+            .quiz-container { padding: 25px; }
+            .header h1 { font-size: 22px; }
+        }
+    </style>
+</head>
+<body>
+    <a href="../index.php" style="position: fixed; top: 20px; left: 20px; z-index: 1000; text-decoration: none; color: #6b705c; font-size: 24px; background: white; width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: 1px solid rgba(107, 112, 92, 0.2);" title="返回首页">
+        🏠
+    </a>
+    <div class="quiz-container">
+        <div class="header">
+            <h1>漂流成员准入测试</h1>
+            <p>感谢您加入冠恩书屋！为了确保书籍能温暖地流转，请完成以下简短测试，这能帮助我们更好地了解您的理念。</p>
+        </div>
+
+        <form id="quizForm">
+            <!-- Q1 -->
+            <div class="question-item">
+                <label class="question-title"><span>1.</span> 【规则底线 · 单选题】您读完漂流书后，下一件事必须做什么？</label>
+                <div class="options-group">
+                    <label class="option-label"><input type="radio" name="q1" value="A"> A) 先放书架上，等有空再处理。</label>
+                    <label class="option-label"><input type="radio" name="q1" value="B"> B) 立刻联系发起人，告知阅读完成，并确认下一步传递安排。</label>
+                    <label class="option-label"><input type="radio" name="q1" value="C"> C) 自己直接寻找下一位读者寄出。</label>
+                    <label class="option-label"><input type="radio" name="q1" value="D"> D) 不着急，等发起人主动来问。</label>
+                </div>
+            </div>
+
+            <!-- Q2 -->
+            <div class="question-item">
+                <label class="question-title"><span>2.</span> 【情景应对 · 单选题】收到书时，发现书角有轻微破损（非运输导致），您会？</label>
+                <div class="options-group">
+                    <label class="option-label"><input type="radio" name="q2" value="A"> A) 算了，小问题，不影响阅读。</label>
+                    <label class="option-label"><input type="radio" name="q2" value="B"> B) 拍照联系发起人，说明情况，然后开始阅读。</label>
+                    <label class="option-label"><input type="radio" name="q2" value="C"> C) 拒绝签收，或要求上一位读者赔偿。</label>
+                    <label class="option-label"><input type="radio" name="q2" value="D"> D) 在漂流笔记里吐槽上一位读者。</label>
+                </div>
+            </div>
+
+            <!-- Q3 -->
+            <div class="question-item">
+                <label class="question-title"><span>3.</span> 【价值认同 · 单选题】您如何看待“漂流笔记”（每位读者在书上留下便签）这件事？</label>
+                <div class="options-group">
+                    <label class="option-label"><input type="radio" name="q3" value="A"> A) 有点麻烦，但可以随便写写。</label>
+                    <label class="option-label"><input type="radio" name="q3" value="B"> B) 是活动的灵魂，我会认真写下感想与下一位读者对话。</label>
+                    <label class="option-label"><input type="radio" name="q3" value="C"> C) 不想写，这是我的隐私。</label>
+                    <label class="option-label"><input type="radio" name="q3" value="D"> D) 我更希望保持书的绝对干净，不该写字。</label>
+                </div>
+            </div>
+
+            <!-- Q4 -->
+            <div class="question-item">
+                <label class="question-title"><span>4.</span> 【承诺检验 · 单选题】如果您预计无法按时读完，您会？</label>
+                <div class="options-group">
+                    <label class="option-label"><input type="radio" name="q4" value="A"> A) 熬夜读完，按时寄出。</label>
+                    <label class="option-label"><input type="radio" name="q4" value="B"> B) 先不管，到期了再说。</label>
+                    <label class="option-label"><input type="radio" name="q4" value="C"> C) 立即主动联系发起人说明情况，申请延期或协商退出本次漂流。</label>
+                    <label class="option-label"><input type="radio" name="q4" value="D"> D) 私下联系下一位读者，让他多等等。</label>
+                </div>
+            </div>
+
+            <!-- Q5 -->
+            <div class="question-item">
+                <label class="question-title"><span>5.</span> 【动机洞察 · 多选题】您参与本次活动的主要原因是？（可多选）</label>
+                <div class="options-group">
+                    <label class="option-label"><input type="checkbox" name="q5" value="A"> A) 免费看到想看的书。</label>
+                    <label class="option-label"><input type="checkbox" name="q5" value="B"> B) 体验一种新奇、有仪式感的阅读方式。</label>
+                    <label class="option-label"><input type="checkbox" name="q5" value="C"> C) 通过书籍，与陌生人产生一种温暖的连接。</label>
+                    <label class="option-label"><input type="checkbox" name="q5" value="D"> D) 支持并想亲身实践“共享”与“信任”的理念。</label>
+                    <label class="option-label"><input type="checkbox" name="q5" value="E"> E) 处理自己不想保留的书。</label>
+                </div>
+            </div>
+
+            <!-- Q6 -->
+            <div class="question-item">
+                <label class="question-title"><span>6.</span> 【信任构建 · 简答题】请用一段话向您之后的“下一位读者”介绍您自己（或您的阅读习惯）。这将是您写在“漂流笔记”上的第一句话。</label>
+                <textarea id="q6" placeholder="请分享您的想法..."></textarea>
+            </div>
+
+            <!-- Q7 -->
+            <div class="question-item">
+                <label class="question-title"><span>7.</span> 【责任心测试 · 简答题】假设这是您第一次参与，请描述您会如何保管这本“漂流书”，以确保它能完好地传递给下一个人？</label>
+                <textarea id="q7" placeholder="例如：使用书签、阅读前洗手、固定存放位置等..."></textarea>
+            </div>
+
+            <!-- Q8 -->
+            <div class="question-item">
+                <label class="question-title"><span>8.</span> 【规则理解 · 简答题】在您看来，活动规则中“爱护书籍”最核心的一点是什么？除了物理上的保护，还包含哪些方面？</label>
+                <textarea id="q8" placeholder="请分享您的理解..."></textarea>
+            </div>
+
+            <!-- Q9 -->
+            <div class="question-item">
+                <label class="question-title"><span>9.</span> 【共创意愿 · 简答题】如果活动中，您发现某位书友的行为可能损害了大家的信任（如严重超时），您认为发起人应该如何处理？您自己又会如何看待这件事？</label>
+                <textarea id="q9" placeholder="请谈谈您的看法..."></textarea>
+            </div>
+
+            <!-- Q10 -->
+            <div class="question-item">
+                <label class="question-title"><span>10.</span> 【终极筛选 · 简答题】请分享一本您近期读过并想推荐给他人的书，并简述一个最打动您的理由。</label>
+                <textarea id="q10" placeholder="书名及推荐理由..."></textarea>
+            </div>
+
+            <button type="button" class="btn-submit" onclick="submitQuiz()">完成测试并注册</button>
+        </form>
+    </div>
+
+    <script>
+        // 检查数据
+        const urlParams = new URLSearchParams(window.location.search);
+        const isPreview = urlParams.get('preview') === '1';
+        
+        const registrationData = JSON.parse(sessionStorage.getItem('pending_registration_data'));
+        
+        if (!registrationData && !isPreview) {
+            alert('未检测到注册信息，请重新填写注册表单。');
+            window.location.href = 'bc_register.html';
+        }
+
+        async function submitQuiz() {
+            if (isPreview) {
+                alert('当前处于预览模式，无法提交正式注册。');
+                return;
+            }
+            // 校验单选题
+            const q1 = document.querySelector('input[name="q1"]:checked')?.value;
+            const q2 = document.querySelector('input[name="q2"]:checked')?.value;
+            const q3 = document.querySelector('input[name="q3"]:checked')?.value;
+            const q4 = document.querySelector('input[name="q4"]:checked')?.value;
+
+            if (!q1 || !q2 || !q3 || !q4) {
+                return alert('请完成所有单项选择题。');
+            }
+
+            // 校验多选题
+            const q5Checked = document.querySelectorAll('input[name="q5"]:checked');
+            if (q5Checked.length === 0) {
+                return alert('请至少选择一个参与动机。');
+            }
+
+            // 获取简答题内容 (不再设限)
+            const q6 = document.getElementById('q6').value.trim();
+            const q7 = document.getElementById('q7').value.trim();
+            const q8 = document.getElementById('q8').value.trim();
+            const q9 = document.getElementById('q9').value.trim();
+            const q10 = document.getElementById('q10').value.trim();
+
+            // 整理最终数据
+            const finalData = {
+                ...registrationData,
+                quiz_answers: {
+                    q1, q2, q3, q4,
+                    q5: Array.from(q5Checked).map(cb => cb.value),
+                    q6, q7, q8, q9, q10
+                }
+            };
+
+            try {
+                const res = await fetch('../api/bc_user_api.php?action=register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify(finalData)
+                });
+                
+                const text = await res.text();
+                let result;
+                try {
+                    result = JSON.parse(text);
+                } catch (e) {
+                    console.error('Server response was not JSON:', text);
+                    return alert('服务器返回了异常数据，请稍后再试。');
+                }
+
+                if (result.success) {
+                    alert('恭喜！测试通过并注册成功。您的登录账号为您的手机号。');
+                    sessionStorage.removeItem('pending_registration_data');
+                    window.location.href = 'book_crossing.html';
+                } else {
+                    alert('注册失败: ' + result.message);
+                }
+            } catch (e) {
+                alert('网络请求出错，请稍后再试');
+            }
+        }
+    </script>
+</body>
+</html>

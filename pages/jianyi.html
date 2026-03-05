@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>给冠恩先生的建议</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../assets/css/jianyi.css">
+</head>
+<body>
+    <!-- 返回首页按钮 -->
+    <a href="../index.php" style="position: fixed; top: 20px; left: 20px; z-index: 1000; background: rgba(255,255,255,0.8); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none; color: #333; box-shadow: 0 2px 10px rgba(0,0,0,0.1); backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.3); transition: all 0.3s ease;" title="返回首页">
+        <i class="fas fa-home"></i>
+    </a>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-comment-dots icon"></i>给冠恩先生的建议</h1>
+            <p class="subtitle">您的宝贵意见将帮助我们变得更好</p>
+            <div class="author-note">
+                <p>"我始终相信，真诚的建议是进步的阶梯。感谢您花时间分享想法，每一条建议我都会认真阅读和思考。"</p>
+                <p style="text-align: right; margin-top: 10px;">—— 冠恩先生</p>
+            </div>
+        </header>
+        
+        <main>
+            <div class="form-container">
+                <form id="suggestionForm">
+                    <div class="form-group">
+                        <label for="nickname" class="required"><i class="fas fa-user icon"></i>昵称</label>
+                        <input type="text" id="nickname" name="nickname" placeholder="请输入您的昵称" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email" class="required"><i class="fas fa-envelope icon"></i>邮箱</label>
+                        <input type="email" id="email" name="email" placeholder="请输入您的邮箱地址" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="suggestion" class="required"><i class="fas fa-edit icon"></i>您的建议</label>
+                        <textarea id="suggestion" name="suggestion" placeholder="请详细描述您的建议、想法或反馈..." required></textarea>
+                        <div class="counter"><span id="charCount">0</span>/1000 字符</div>
+                    </div>
+                    
+                    <div class="error-message" id="errorMessage">
+                        <i class="fas fa-exclamation-circle"></i> <span id="errorText">提交时出现错误，请稍后再试。</span>
+                    </div>
+                    
+                    <div class="success-message" id="successMessage">
+                        <i class="fas fa-check-circle"></i> <span id="successText">提交成功！</span>
+                    </div>
+                    
+                    <button type="submit" class="submit-btn" id="submitBtn">
+                        <span class="loading" id="loadingSpinner" style="display: none;"></span>
+                        <span id="submitText">提交建议</span>
+                        <i class="fas fa-paper-plane icon"></i>
+                    </button>
+                </form>
+            </div>
+            
+            <div class="thank-you" id="thankYouMessage">
+                <h2><i class="fas fa-heart icon"></i>感谢您的建议！</h2>
+                <p>您的建议已成功提交，我们会认真阅读并考虑您的宝贵意见。</p>
+                <p>如果必要，我们可能会通过您提供的邮箱与您进一步沟通。</p>
+                <div class="signature">
+                    <p>致以诚挚的谢意，</p>
+                    <p class="name">冠恩先生</p>
+                </div>
+                <button id="newSuggestionBtn" class="submit-btn" style="margin-top: 25px; width: auto; padding: 12px 24px;">
+                    <i class="fas fa-plus icon"></i>提交新的建议
+                </button>
+            </div>
+        </main>
+        
+        <footer>
+            <p>© 2023 冠恩先生 | 建议反馈系统 | 感谢每一位贡献者的宝贵意见</p>
+        </footer>
+    </div>
+
+    <script src="../assets/js/jianyi.js"></script>
+</body>
+</html>

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冠恩飞机站 - 射击游戏</title>
+    <link rel="stylesheet" href="../assets/css/shooting-game.css">
+</head>
+<body>
+    <a href="../index.php" style="position: fixed; top: 20px; left: 20px; z-index: 1000; color: white; text-decoration: none; font-size: 24px; background: rgba(0,0,0,0.5); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(5px);" title="返回首页">🏠</a>
+    <div id="game-container">
+        <canvas id="game-canvas"></canvas>
+        
+        <!-- UI元素 -->
+        <div id="ui">
+            <div id="score">分数: 0</div>
+            <div id="level">关卡: 1</div>
+            <div id="wave">波次: 1</div>
+            <div id="lives">生命: 3</div>
+            <div id="hp-bar">
+                <div id="hp-fill" style="width: 100%"></div>
+            </div>
+            <div id="energy-bar">
+                <div id="energy-fill" style="width: 0%"></div>
+            </div>
+            <button id="skill-btn">技能</button>
+        </div>
+        
+        <!-- 开始界面 -->
+        <div id="start-screen">
+            <h1>冠恩飞机站</h1>
+            <div id="difficulty-selector">
+                <button class="difficulty-btn selected" data-difficulty="easy">普通模式</button>
+                <button class="difficulty-btn" data-difficulty="hard">地狱模式</button>
+            </div>
+            <button id="start-btn" class="button">开始游戏</button>
+        </div>
+        
+        <!-- 游戏结束界面 -->
+        <div id="game-over">
+            <h2>游戏结束</h2>
+            <div id="final-score">最终分数: 0</div>
+            <button id="restart-btn" class="button">重新开始</button>
+            <button id="menu-btn" class="button">返回菜单</button>
+        </div>
+        
+        <!-- 暂停菜单 -->
+        <div id="pause-menu">
+            <h2>游戏暂停</h2>
+            <button id="resume-btn" class="button">继续游戏</button>
+            <button id="restart-game-btn" class="button">重新开始</button>
+            <button id="quit-btn" class="button">返回菜单</button>
+        </div>
+    </div>
+    
+    <script src="../assets/js/shooting-game.js"></script>
+</body>
+</html>

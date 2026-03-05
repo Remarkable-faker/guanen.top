@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>冠恩书屋 · 书籍陈列</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<style>
+:root {
+  --bg: #f8f9fa;
+  --card: #ffffff;
+  --text-main: #1a1a1a;
+  --text-sub: #666666;
+  --line: rgba(0,0,0,0.08);
+  --accent: #6b705c;
+  --shadow: 0 4px 20px rgba(0,0,0,0.05);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.back-btn {
+  position: fixed;
+  top: calc(20px + env(safe-area-inset-top));
+  left: 20px;
+  z-index: 1000;
+  background: rgba(255,255,255,0.9);
+  padding: 10px 18px;
+  border-radius: 30px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(107, 112, 92, 0.2);
+  text-decoration: none;
+  color: #6b705c;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.back-btn:hover {
+  background: #6b705c;
+  color: white;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  background: var(--bg);
+  color: var(--text-main);
+  line-height: 1.6;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+header {
+  max-width: 1200px;
+  margin: calc(85px + env(safe-area-inset-top)) auto 30px;
+  padding: 0 20px;
+  text-align: center;
+}
+
+header h1 {
+  font-size: 32px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  letter-spacing: 1px;
+}
+
+header p {
+  font-size: 16px;
+  color: var(--text-sub);
+  font-style: italic;
+}
+
+/* 导航标签 */
+.nav-tabs {
+  max-width: 1200px;
+  margin: 0 auto 30px;
+  padding: 0 40px;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* 用户面板与申请记录样式 */
+#userProfile, #requestsPanel {
+  max-width: 1200px;
+  margin: 0 auto 20px;
+  padding: 0 40px;
+}
+
+.user-profile-card {
+  background: #f1f3f5;
+  padding: 15px 20px;
+  border-radius: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid rgba(0,0,0,0.05);
+}
+
+.user-info {
+  font-size: 14px;
+  color: #495057;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.user-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.request-panel-card {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: var(--shadow);
+}
+
+.request-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+}
+
+.request-item {
+  border-bottom: 1px solid #f1f3f5;
+  padding: 12px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.nav-tab {
+  padding: 8px 16px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: var(--text-sub);
+  white-space: nowrap;
+}
+
+.nav-tab:hover, .nav-tab.active {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+/* 借阅功能样式 */
+.book-actions {
+  margin-top: 15px;
+  display: flex;
+  gap: 10px;
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+
+.btn-action {
+  flex: 1;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
+.btn-borrow {
+  background: #e9ecef;
+  color: #495057;
+}
+
+.btn-borrow:hover {
+  background: #6b705c;
+  color: white;
+}
+
+.btn-return {
+  background: #f8f9fa;
+  color: #adb5bd;
+  border: 1px solid #dee2e6;
+}
+
+.btn-return:hover {
+  background: #e03131;
+  color: white;
+  border-color: #e03131;
+}
+
+.book-status {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  margin-bottom: 8px;
+}
+
+.status-available { background: #e7f5ff; color: #1971c2; }
+.status-borrowed { background: #fff4e6; color: #d9480f; }
+.status-pending { background: #f3f0ff; color: #6741d9; }
+
+/* 弹窗样式 */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.5);
+  z-index: 2000;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+.modal-header {
+  margin-bottom: 15px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.modal-footer {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.btn-confirm { background: #6b705c; color: white; border: none; padding: 8px 20px; border-radius: 6px; cursor: pointer; }
+.btn-cancel { background: #f1f3f5; color: #495057; border: none; padding: 8px 20px; border-radius: 6px; cursor: pointer; }
+
+
+main {
+  max-width: 1200px;
+  margin: 0 auto 60px;
+  padding: 0 40px;
+}
+
+.category-section {
+  margin-bottom: 50px;
+}
+
+.category-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  padding-left: 12px;
+  border-left: 4px solid var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.category-count {
+  font-size: 13px;
+  font-weight: normal;
+  color: var(--text-sub);
+  background: rgba(0,0,0,0.05);
+  padding: 2px 10px;
+  border-radius: 12px;
+}
+
+.book-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+.book {
+  background: var(--card);
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow);
+}
+
+.book:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.1);
+}
+
+.book h3 {
+  font-size: 17px;
+  font-weight: 600;
+  margin: 0 0 10px;
+  color: var(--text-main);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.4;
+  height: 2.8em;
+}
+
+.book .author {
+  font-size: 13px;
+  color: var(--accent);
+  margin-bottom: 4px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.book .publisher {
+  font-size: 12px;
+  color: var(--text-sub);
+  margin-bottom: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.book .rating {
+  font-size: 12px;
+  color: #f39c12;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.book .note {
+  font-size: 12px;
+  color: #888;
+  line-height: 1.6;
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+  margin-top: auto;
+}
+
+@media (max-width: 768px) {
+  .back-btn { 
+    top: 15px; 
+    left: 15px; 
+    padding: 6px 12px; 
+    font-size: 13px;
+    background: rgba(255,255,255,0.95);
+  }
+
+  header { 
+    margin: 70px auto 20px; 
+    padding: 0 20px; 
+  }
+  header h1 { font-size: 26px; }
+  header p { font-size: 14px; margin-top: 8px; }
+  
+  #userProfile, #requestsPanel { padding: 0 15px; margin-bottom: 15px; }
+  .user-profile-card { 
+    flex-direction: column; 
+    gap: 12px; 
+    align-items: flex-start; 
+    padding: 18px; 
+    border-radius: 16px;
+  }
+  .user-info { font-size: 14px; width: 100%; }
+  .user-actions { 
+    width: 100%; 
+    justify-content: flex-start; 
+    gap: 15px;
+    border-top: 1px solid rgba(0,0,0,0.05); 
+    padding-top: 15px; 
+    margin-top: 5px;
+  }
+  .user-actions .btn-action {
+    height: 40px;
+    padding: 0 15px;
+  }
+
+  .nav-tabs { 
+    padding: 12px 15px; 
+    margin-bottom: 20px;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    gap: 10px;
+    scrollbar-width: none;
+    position: sticky;
+    top: 0;
+    z-index: 900;
+    background: var(--bg);
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+  }
+  .nav-tabs::-webkit-scrollbar { display: none; }
+  .nav-tab { 
+    padding: 8px 18px; 
+    font-size: 14px; 
+    flex-shrink: 0; 
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border: 1px solid transparent;
+  }
+  
+  .nav-tab.active {
+    background: var(--accent);
+    color: white;
+    box-shadow: 0 4px 12px rgba(107, 112, 92, 0.2);
+    transform: translateY(-1px);
+  }
+  
+  main { padding: 0 15px; }
+  .category-section { margin-bottom: 35px; }
+  .category-title { 
+    font-size: 18px; 
+    margin-bottom: 15px; 
+    padding-left: 10px;
+  }
+  .category-count { font-size: 12px; }
+
+  .book-grid { 
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); 
+    gap: 12px;
+  }
+  .book { 
+    padding: 12px; 
+    border-radius: 10px;
+  }
+  .book h3 { 
+    font-size: 15px; 
+    height: 2.8em; 
+    margin-bottom: 8px;
+  }
+  .book .author, .book .publisher { font-size: 11px; margin-bottom: 2px; }
+  .book .rating { font-size: 11px; margin-bottom: 8px; }
+  .book .note { font-size: 11px; padding-top: 8px; }
+  
+  .book-actions {
+    gap: 6px;
+    padding-top: 10px;
+    margin-top: 10px;
+  }
+  .btn-action {
+    padding: 5px 8px;
+    font-size: 12px;
+    border-radius: 4px;
+  }
+
+  .request-panel-card { padding: 15px; }
+  .request-header h3 { font-size: 16px; }
+}
+
+@media (max-width: 480px) {
+  header { 
+    margin-top: calc(80px + env(safe-area-inset-top)); 
+    margin-bottom: 25px;
+    padding: 0 20px;
+  }
+  header h1 { 
+    font-size: 28px; 
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+  header p { 
+    font-size: 14px; 
+    margin-top: 5px;
+    padding: 0 10px;
+  }
+  
+  .back-btn { 
+    top: calc(15px + env(safe-area-inset-top)); 
+    left: 15px;
+    padding: 10px 16px;
+    font-size: 14px;
+    border-radius: 25px;
+  }
+
+  .nav-tabs { 
+    padding: 12px 20px; 
+    margin-bottom: 25px;
+    gap: 12px;
+    -webkit-overflow-scrolling: touch;
+    overflow-x: auto;
+    position: sticky;
+    top: calc(50px + env(safe-area-inset-top)); /* 适配header高度 */
+    z-index: 900;
+    background: rgba(248, 249, 250, 0.95);
+    backdrop-filter: blur(10px);
+    margin-left: -20px;
+    margin-right: -20px;
+    width: calc(100% + 40px);
+  }
+  
+  .nav-tabs::after {
+    content: '';
+    flex: 0 0 20px;
+  }
+
+  #userProfile, #requestsPanel {
+    padding: 0 15px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .user-profile-card {
+    padding: 15px;
+    border-radius: 15px;
+    background: white;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .user-actions {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .user-actions .btn-action {
+    flex: 1;
+    min-width: 140px;
+    height: 44px;
+  }
+
+  .category-title {
+    font-size: 22px;
+    padding-left: 15px;
+    margin: 30px 0 20px;
+  }
+  
+  .nav-tab {
+    padding: 10px 20px;
+    font-size: 15px;
+    border-radius: 22px;
+  }
+
+  .book-grid { 
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); 
+    gap: 12px;
+  }
+  
+  .book { 
+    padding: 12px; 
+    border-radius: 10px;
+  }
+
+  .book h3 { 
+    font-size: 15px; 
+    height: 2.8em; 
+    margin-bottom: 8px;
+  }
+
+  .book-actions {
+    margin-top: 12px;
+    padding-top: 10px;
+    gap: 8px;
+    display: flex;
+    width: 100%;
+  }
+
+  .btn-action {
+    flex: 1;
+    min-width: 0; /* 允许按钮缩小 */
+    height: 40px;
+    font-size: 13px;
+    border-radius: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .request-item { 
+    padding: 18px 0;
+  }
+
+  .request-panel-card {
+    border-radius: 16px;
+    padding: 15px;
+  }
+  
+  .modal-content { 
+    width: 90%;
+    padding: 24px;
+    border-radius: 20px;
+  }
+  
+  .modal-footer { 
+    flex-direction: column;
+    gap: 10px; 
+  }
+  
+  .btn-confirm, .btn-cancel { 
+    width: 100%;
+    height: 48px; 
+    border-radius: 12px;
+    font-size: 15px;
+  }
+  
+  main {
+    padding: 0 15px;
+    width: 100%;
+    box-sizing: border-box;
+    padding-bottom: calc(40px + env(safe-area-inset-bottom));
+  }
+}
+</style>
+</head>
+
+<body>
+
+<a href="../index.php" class="back-btn" style="left: auto; right: 20px;" title="返回首页">
+  <i class="fas fa-home"></i>
+</a>
+<a href="book_crossing.html" class="back-btn">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+  返回漂流主页
+</a>
+
+<header>
+  <h1>冠恩书屋</h1>
+  <p>“博学之，审问之，慎思之，明辨之，笃行之。”</p>
+</header>
+
+<div class="nav-tabs" id="navTabs">
+  <div class="nav-tab active" onclick="filterCategory('all', this)">全部书籍</div>
+</div>
+
+<!-- 新增：我的借阅申请入口 -->
+<div id="userProfile" style="display: none;">
+  <div class="user-profile-card">
+    <div class="user-info">
+      <i class="fas fa-user-circle" style="font-size: 20px; color: var(--accent);"></i> 
+      <span>欢迎回来，<strong id="displayUsername"></strong></span>
+    </div>
+    <div class="user-actions">
+      <button onclick="toggleRequests()" class="btn-action" style="width: auto; padding: 6px 15px; background: white; border: 1px solid #ddd; font-size: 13px;">
+        <i class="fas fa-list-ul"></i> 我的申请记录
+      </button>
+      <a href="../user/user_logout.php" style="font-size: 13px; color: #fa5252; text-decoration: none; display: flex; align-items: center; padding: 0 5px;">退出</a>
+    </div>
+  </div>
+</div>
+
+<!-- 新增：我的申请列表面板 -->
+<div id="requestsPanel" style="display: none;">
+  <div class="request-panel-card">
+    <div class="request-header">
+      <h3 style="margin: 0; font-size: 18px;">我的借阅/归还记录</h3>
+      <button onclick="toggleRequests()" style="background: none; border: none; cursor: pointer; color: #999;">关闭</button>
+    </div>
+    <div id="requestsList" style="max-height: 400px; overflow-y: auto;">
+      <!-- 申请记录动态加载 -->
+      <div style="text-align: center; color: #999; padding: 20px;">正在加载记录...</div>
+    </div>
+  </div>
+</div>
+
+<main id="bookContainer">
+  <!-- 内容将由 JavaScript 动态生成 -->
+</main>
+
+<!-- 操作确认弹窗 -->
+<div id="actionModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header" id="modalTitle">申请借阅</div>
+    <div id="modalBody" style="margin-bottom: 20px; color: #666;">
+      您确定要申请借阅《<span id="targetBookTitle"></span>》吗？
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">取消</button>
+      <button class="btn-confirm" onclick="confirmAction()">确定提交</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let allBooks = [];
+let currentUser = null;
+
+// 检查用户登录状态
+async function checkLoginStatus() {
+  try {
+    const response = await fetch('../api/check_login.php', { credentials: 'include' });
+    const result = await response.json();
+    if (result.logged_in) {
+      currentUser = { username: result.username };
+      document.getElementById('userProfile').style.display = 'block';
+      document.getElementById('displayUsername').textContent = currentUser.username;
+    }
+  } catch (error) {
+    console.error('Failed to check login status');
+  }
+}
+
+// 检查是否已登录漂流系统
+async function checkBcLogin() {
+  try {
+    const response = await fetch('../api/bc_user_api.php?action=check_status', { credentials: 'include' });
+    const result = await response.json();
+    return result.is_logged_in;
+  } catch (error) {
+    console.error('Failed to check bc login status');
+    return false;
+  }
+}
+
+// 登录提示弹窗
+function showLoginPrompt() {
+  if (confirm('请先登录漂流系统才能进行操作\n是否前往登录页面？')) {
+    window.open('../pages/bc_register.html', '_blank');
+  }
+}
+
+async function fetchBooks() {
+  try {
+    const response = await fetch('../api/get_library_books.php', { credentials: 'include' });
+    const result = await response.json();
+    if (result.success) {
+      allBooks = result.data;
+      renderBooks();
+    } else {
+      console.error('Failed to fetch books:', result.message);
+    }
+  } catch (error) {
+    console.error('Error fetching books:', error);
+  }
+}
+
+// 我的申请记录逻辑
+let showRequests = false;
+async function toggleRequests() {
+  // 先检查是否已登录漂流系统
+  const isLoggedIn = await checkBcLogin();
+  if (!isLoggedIn) {
+    showLoginPrompt();
+    return;
+  }
+
+  const panel = document.getElementById('requestsPanel');
+  showRequests = !showRequests;
+  panel.style.display = showRequests ? 'block' : 'none';
+  if (showRequests) {
+    fetchUserRequests();
+  }
+}
+
+async function fetchUserRequests() {
+  const list = document.getElementById('requestsList');
+  try {
+    const response = await fetch('../api/get_user_requests.php', { credentials: 'include' });
+    const result = await response.json();
+    
+    if (result.success) {
+      if (result.data.length === 0) {
+        list.innerHTML = '<div style="text-align: center; color: #999; padding: 20px;">暂无申请记录</div>';
+        return;
+      }
+      
+      list.innerHTML = result.data.map(req => `
+        <div class="request-item">
+          <div>
+            <div style="font-weight: 500; font-size: 14px;">《${req.book_title}》</div>
+            <div style="font-size: 12px; color: #999; margin-top: 4px;">
+              ${req.type === 'borrow' ? '借阅申请' : '还书申请'} · ${req.created_at}
+              ${req.tracking_number ? `<br><span style="color: #1971c2;">快递单号: ${req.tracking_number}</span>` : ''}
+            </div>
+          </div>
+          <div class="status-tag" style="font-size: 13px;">
+            ${formatRequestStatus(req.status)}
+          </div>
+        </div>
+      `).join('');
+    } else {
+      list.innerHTML = `<div style="text-align: center; color: #fa5252; padding: 20px;">${result.message}</div>`;
+    }
+  } catch (error) {
+    list.innerHTML = '<div style="text-align: center; color: #fa5252; padding: 20px;">加载失败，请重试</div>';
+  }
+}
+
+function formatRequestStatus(status) {
+  const map = {
+    'pending': { text: '待审核', color: '#6741d9' },
+    'approved': { text: '已通过', color: '#40c057' },
+    'rejected': { text: '已拒绝', color: '#fa5252' }
+  };
+  const s = map[status] || { text: status, color: '#999' };
+  return `<span style="color: ${s.color}">${s.text}</span>`;
+}
+
+function getStatusBadge(status) {
+  const map = {
+    'available': { text: '可借阅', class: 'status-available' },
+    'borrowed': { text: '借阅中', class: 'status-borrowed' },
+    'pending': { text: '申请中', class: 'status-pending' }
+  };
+  const s = map[status] || map['available'];
+  return `<span class="book-status ${s.class}">${s.text}</span>`;
+}
+
+const container = document.getElementById("bookContainer");
+const navTabs = document.getElementById("navTabs");
+
+function renderBooks(filter = 'all') {
+  container.innerHTML = '';
+  
+  // 按照分类分组
+  const groups = {};
+  allBooks.forEach(book => {
+    const cat = book.category || '其他分类';
+    if (!groups[cat]) groups[cat] = [];
+    groups[cat].push(book);
+  });
+
+  // 对每个分类内的书籍按标题排序
+  for (const cat in groups) {
+    groups[cat].sort((a, b) => a.title.localeCompare(b.title, 'zh-CN'));
+  }
+
+  const categories = Object.keys(groups).sort();
+  
+  // 生成导航
+  if (navTabs.children.length <= 1) {
+    categories.forEach(cat => {
+      const tab = document.createElement("div");
+      tab.className = "nav-tab";
+      tab.textContent = cat;
+      tab.onclick = () => filterCategory(cat, tab);
+      navTabs.appendChild(tab);
+    });
+  }
+
+  // 渲染
+  categories.forEach(cat => {
+    if (filter !== 'all' && filter !== cat) return;
+
+    const section = document.createElement("section");
+    section.className = "category-section";
+    section.innerHTML = `
+      <div class="category-title">
+        ${cat}
+        <span class="category-count">${groups[cat].length} 本</span>
+      </div>
+      <div class="book-grid"></div>
+    `;
+    
+    const grid = section.querySelector(".book-grid");
+    groups[cat].forEach(book => {
+      const div = document.createElement("div");
+      div.className = "book";
+      div.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+          ${getStatusBadge(book.status)}
+          ${book.rating > 0 ? `<div class="rating" style="margin: 0; font-size: 12px;">⭐ ${book.rating.toFixed(1)}</div>` : ''}
+        </div>
+        <div class="book-identifier" style="font-size: 10px; color: #adb5bd; margin-bottom: 4px; display: flex; gap: 10px; align-items: center;">
+          <span><i class="fas fa-hashtag" style="font-size: 9px;"></i> ${book.id}</span>
+          <span><i class="fas fa-barcode" style="font-size: 9px;"></i> ${book.isbn || "无"}</span>
+        </div>
+        <h3>${book.title}</h3>
+        <div class="book-meta" style="font-size: 13px; color: var(--text-sub); margin-bottom: 4px; display: flex; gap: 8px; flex-wrap: wrap;">
+          <span class="author" style="color: var(--accent); font-weight: 500;">${book.author || "佚名"}</span>
+          <span style="opacity: 0.3;">|</span>
+          <span class="publisher">${book.publisher || "未知出版社"}</span>
+        </div>
+        <div class="book-actions">
+          ${book.status === 'available' ? 
+            `<button class="btn-action btn-borrow" onclick="handleAction('borrow', ${book.id}, '${book.title}')">借阅</button>` : 
+            `<button class="btn-action btn-borrow" disabled style="opacity:0.5; cursor:not-allowed">借阅</button>`
+          }
+          ${book.status === 'borrowed' ? 
+            `<button class="btn-action btn-return" onclick="handleAction('return', ${book.id}, '${book.title}')">还书</button>` : 
+            `<button class="btn-action btn-return" disabled style="opacity:0.5; cursor:not-allowed">还书</button>`
+          }
+        </div>
+      `;
+      grid.appendChild(div);
+    });
+    
+    container.appendChild(section);
+  });
+}
+
+function filterCategory(cat, el) {
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  
+  const activeTab = el || navTabs.firstElementChild;
+  activeTab.classList.add('active');
+  
+  // 自动滚动导航栏，使选中项居中
+  if (el) {
+    const containerWidth = navTabs.offsetWidth;
+    const tabOffsetLeft = el.offsetLeft;
+    const tabWidth = el.offsetWidth;
+    const scrollLeft = tabOffsetLeft - (containerWidth / 2) + (tabWidth / 2);
+    navTabs.scrollTo({ left: scrollLeft, behavior: 'smooth' });
+  }
+  
+  renderBooks(cat);
+  
+  // 如果不在顶部，点击分类后滚动回内容区域起点
+  const scrollTarget = (document.getElementById('userProfile').style.display === 'none') ? 
+                       document.getElementById('bookContainer').offsetTop - 100 : 
+                       document.getElementById('userProfile').offsetTop - 20;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// 借阅/还书弹窗逻辑
+let currentAction = null;
+const modal = document.getElementById('actionModal');
+const modalTitle = document.getElementById('modalTitle');
+const modalBody = document.getElementById('modalBody');
+
+function handleAction(type, id, title) {
+  // 先检查是否已登录漂流系统
+  checkBcLogin().then(isLoggedIn => {
+    if (!isLoggedIn) {
+      showLoginPrompt();
+      return;
+    }
+
+    currentAction = { type, id, title };
+    modalTitle.textContent = type === 'borrow' ? '确认借阅' : '确认还书';
+    if (type === 'borrow') {
+      modalBody.innerHTML = `
+        您确定要借阅《<strong>${title}</strong>》吗？<br>
+        <div style="margin-top: 15px;">
+          <label style="display: block; font-size: 13px; color: #333; margin-bottom: 5px;">请填写收货地址信息：</label>
+          <textarea id="borrowAddress" placeholder="请填写详细的收货地址、收货人及联系电话" 
+            style="width: 100%; height: 80px; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; box-sizing: border-box; resize: none;"></textarea>
+        </div>
+        <small style="color:#666; margin-top:8px; display:block;">提交后需等待管理员审批。</small>
+      `;
+    } else {
+      modalBody.innerHTML = `
+        您确定要归还《<strong>${title}</strong>》吗？<br>
+        <div style="margin-top: 15px;">
+          <label style="display: block; font-size: 13px; color: #333; margin-bottom: 5px;">请填写寄回的快递单号：</label>
+          <input type="text" id="returnTracking" placeholder="填写快递公司及单号" 
+            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; box-sizing: border-box;">
+        </div>
+        <small style="color:#666; margin-top:8px; display:block;">提交后需等待管理员审批。</small>
+      `;
+    }
+    modal.style.display = 'flex';
+  });
+}
+
+function closeModal() {
+  modal.style.display = 'none';
+  currentAction = null;
+}
+
+async function confirmAction() {
+  if (!currentAction) return;
+  
+  let address = '';
+  let tracking = '';
+  if (currentAction.type === 'borrow') {
+    address = document.getElementById('borrowAddress').value.trim();
+    if (!address) {
+      alert('请填写收货地址信息');
+      return;
+    }
+  } else if (currentAction.type === 'return') {
+    tracking = document.getElementById('returnTracking').value.trim();
+    if (!tracking) {
+      alert('请填写快递单号');
+      return;
+    }
+  }
+  
+  const btn = document.querySelector('.btn-confirm');
+  const originalText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = '提交中...';
+
+  try {
+    const response = await fetch('../api/book_action.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({
+        action: currentAction.type,
+        book_id: currentAction.id,
+        address: address,
+        tracking_number: tracking
+      })
+    });
+    
+    const result = await response.json();
+    if (result.success) {
+      alert(result.message || '申请提交成功！');
+      closeModal();
+      fetchBooks(); // 刷新列表
+    } else {
+      if (result.code === 401) {
+        if (confirm('您尚未登录，是否前往登录？')) {
+          window.location.href = '../user/user_login.php?redirect=' + encodeURIComponent(window.location.href);
+        }
+      } else {
+        alert(result.message || '操作失败');
+      }
+    }
+  } catch (error) {
+    alert('网络请求失败');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = originalText;
+  }
+}
+
+// 初始加载
+fetchBooks();
+checkLoginStatus();
+</script>
+
+</body>
+</html>

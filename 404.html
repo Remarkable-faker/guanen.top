@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>页面走失了 · 冠恩书屋</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        background: linear-gradient(135deg, #0f172a, #1e293b);
+        font-family: "Noto Serif SC", serif;
+        color: #e2e8f0;
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        overflow: hidden;
+    }
+
+    .container {
+        max-width: 700px;
+        padding: 40px;
+        background: rgba(255,255,255,0.05);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        box-shadow: 0 0 40px rgba(0,0,0,0.4);
+        animation: fadeIn 1.2s ease forwards;
+    }
+
+    h1 {
+        font-size: 90px;
+        margin: 0;
+        letter-spacing: 4px;
+        opacity: 0.9;
+    }
+
+    h2 {
+        font-weight: normal;
+        margin-top: -10px;
+        font-size: 22px;
+        opacity: 0.8;
+    }
+
+    p {
+        margin-top: 30px;
+        line-height: 1.8;
+        font-size: 18px;
+        color: #cbd5e1;
+    }
+
+    .quote {
+        margin-top: 20px;
+        font-style: italic;
+        opacity: 0.6;
+        font-size: 16px;
+    }
+
+    .btn {
+        display: inline-block;
+        margin-top: 40px;
+        padding: 12px 28px;
+        border-radius: 30px;
+        background: #facc15;
+        color: #0f172a;
+        text-decoration: none;
+        font-weight: bold;
+        transition: all 0.3s ease;
+    }
+
+    .btn:hover {
+        background: #fde047;
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(250, 204, 21, 0.4);
+    }
+
+    @keyframes fadeIn {
+        from {opacity: 0; transform: translateY(20px);}
+        to {opacity: 1; transform: translateY(0);}
+    }
+
+    .floating {
+        position: absolute;
+        font-size: 14px;
+        opacity: 0.08;
+        animation: float 20s linear infinite;
+    }
+
+    @keyframes float {
+        from { transform: translateY(100vh); }
+        to { transform: translateY(-10vh); }
+    }
+</style>
+</head>
+
+<body>
+
+<div class="floating" style="left:10%;">✦ 误入未写完的章节 ✦</div>
+<div class="floating" style="left:40%; animation-duration:25s;">✦ 此页暂未归档 ✦</div>
+<div class="floating" style="left:70%; animation-duration:18s;">✦ 页面正在流浪 ✦</div>
+
+<div class="container">
+    <h1>404</h1>
+    <h2>这页书，暂时走失了。</h2>
+
+    <p>
+        你翻开的这一页，或许被时间夹进了另一册书里。<br>
+        也可能，它正漂流在某位读者的书签之间。
+    </p>
+
+    <div class="quote">
+        “在冠恩书屋，没有真正的丢失，<br>
+        只有尚未抵达的文字。”
+    </div>
+
+  
+</div>
+
+</body>
+</html>

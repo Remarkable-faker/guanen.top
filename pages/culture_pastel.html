@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>Culture in Pastel</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- React & Framer Motion (本地化加载) -->
+  <script src="../assets/vendor/react.min.js"></script>
+  <script src="../assets/vendor/react-dom.min.js"></script>
+  <script>
+    // 确保 React 全局变量可用
+    window.React = React;
+    window.ReactDOM = ReactDOM;
+  </script>
+  <script src="../assets/vendor/framer-motion.js"></script>
+  
+  <!-- Custom Component -->
+  <script src="../lib/utils.js"></script>
+  <script src="../components/ui/text-generate-effect.js"></script>
+
+  <style>
+    :root {
+      --glass-bg: rgba(255, 255, 255, 0.42);
+      --glass-border: rgba(255, 255, 255, 0.55);
+      --text-color: rgba(40, 40, 40, 0.72);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      height: 100vh;
+      overflow: hidden;
+      font-family: "Didot", "Bodoni MT", "Songti SC", "STSong", serif;
+      background: linear-gradient(
+        135deg,
+        #f7d9c4,
+        #f3c6c6,
+        #f6e2b3,
+        #f2d7e8,
+        #fdebd0
+      );
+      background-size: 400% 400%;
+      animation: gradientFlow 18s ease infinite;
+    }
+
+    @keyframes gradientFlow {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* 磨砂层（加强版） */
+    .frosted-layer {
+      position: absolute;
+      inset: 0;
+      backdrop-filter: blur(32px) saturate(135%) brightness(1.05);
+      -webkit-backdrop-filter: blur(32px) saturate(135%) brightness(1.05);
+    }
+
+    /* 轻微噪点，增强真实磨砂质感 */
+    .frosted-layer::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(rgba(255,255,255,0.08) 1px, transparent 1px);
+      background-size: 3px 3px;
+      opacity: 0.25;
+      pointer-events: none;
+    }
+
+    /* 文本容器 */
+    .floating-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .floating-text {
+      position: absolute;
+      color: var(--text-color);
+      font-size: 16px;
+      letter-spacing: 0.15em;
+      white-space: normal;
+      max-width: 200px;
+      line-height: 1.8;
+      text-shadow: 0 2px 10px rgba(255, 255, 255, 0.3);
+      opacity: 0;
+      animation: float 20s ease-in-out infinite;
+    }
+
+    /* 移动端样式优化 */
+    @media (max-width: 768px) {
+      .floating-text {
+        font-size: 12px;
+        max-width: 120px;
+        line-height: 1.5;
+      }
+    }
+
+    /* 柔和的渐影消失动画（保持静止） */
+    @keyframes float {
+      0%   { opacity: 0; filter: blur(4px); }
+      15%  { opacity: 0.8; filter: blur(0); }
+      80%  { opacity: 0.7; filter: blur(0); }
+      100% { opacity: 0; filter: blur(8px); }
+    }
+  </style>
+</head>
+<body class="bg-transparent overflow-hidden">
+  <!-- 返回首页按钮 -->
+  <a href="../index.php" class="fixed top-8 left-8 z-[200] w-12 h-12 flex items-center justify-center rounded-full bg-white/30 backdrop-blur-md border border-white/40 text-gray-700 hover:bg-white/50 transition-all duration-300 shadow-sm" title="返回首页">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+  </a>
+  
+  <div class="frosted-layer"></div>
+
+  <div class="floating-container" id="container"></div>
+
+  <div id="text-effect-container" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-4xl px-8 z-10"></div>
+
+  <script>
+    // 渲染 TextGenerateEffect 组件并实现自动轮播
+    document.addEventListener('DOMContentLoaded', () => {
+      const container = document.getElementById('text-effect-container');
+      const effectWords = [
+    //       "你好呀，朋友",
+    //   "欢迎你",
+    //   "目前还在开发呢",
+    //   "你也可以提建议",
+    //   "接下来",
+    //   "欣赏一下吧",
+      "想象另一种可能",
+  "当石头从山顶滚落，西西弗斯走下山时的那个短暂瞬间，他清晰地意识到自己命运的荒诞性。这种意识不是软弱，而是力量的开始——清醒地面对荒谬，本身已是一种胜利。",
+  "人生若只如初见",
+  "如根深种，如浪翻涌",
+  "我既不生活再过去，也不生活在未来",
+  "这一切都等着你去探索",
+  "落霞与孤鹜齐飞，秋水共长天一色",
+  "为你千千万万遍",
+  "什么是好，什么又是不好？",
+  "青青子衿，悠悠我心",
+  "追光而遇，沐光而行",
+  "成长就是不停的遇到错误，不停的改变，越变越好",
+  "做你认为正确的事情",
+  "不必成为别人，只需成为自己",
+  "等待和希望",
+  "过去都是假的，回忆没有归路",
+  "重要的不是过去，而是未来",
+  "生活过得好一点，比大多数更宏伟",
+  "明天又是新的一天了",
+  "满纸荒唐言，一把辛酸泪",
+  "如果这个世界本身足够荒唐，那到底什么才算疯狂",
+  "宇宙由故事构成，而非原子",
+  "只有依靠自己，胜算才更大",
+  "我翻山越岭而来，只为更好的活",
+  "你太年轻，太理想主义了，以为每个问题都能找到答案",
+  "游隼的眼睛里，没有过去，也没有未来，只有此刻",
+  "在荒野中长大的人，骨子里都刻着自由的密码",
+  "我不可能只是仰望你，我要成为和你并肩的人",
+  "在我身上有一个不可战胜的夏天",
+  "你爱上的是一个臆想出来的形象",
+  "我们必须想象西西弗斯是幸福的",
+  "有一天，我一共看了四十四次日落",
+  "反抗痛苦的最好方式是爱生活",
+  "我们脚下才算万物生长之地",
+  "相爱太短，遗忘太长",
+  "命里有时终须有"
+      ];
+
+      if (container && window.TextGenerateEffect) {
+        const root = ReactDOM.createRoot(container);
+        
+        // 创建一个带有动态时长的轮播包装组件
+        const TextRotator = () => {
+          const [index, setIndex] = React.useState(0);
+          const [isExiting, setIsExiting] = React.useState(false);
+          
+          React.useEffect(() => {
+            let timeoutId;
+            
+            const runCycle = (currentIndex) => {
+              const text = effectWords[currentIndex];
+              const len = text.length;
+              
+              // 动态计算时间 (单位: 毫秒)
+              const entranceDuration = 1200; // 基础进场动画时间
+              const staggerTime = 150;      // 每个字的交错时间
+              const totalEntranceTime = entranceDuration + (len * staggerTime);
+              
+              const readingTime = Math.max(2000, len * 100); // 阅读时间：每字300ms，最低2秒
+              const exitTime = 1500; // 消失动画预留时间
+
+              // 1. 等待文字完全进场 + 用户阅读
+              timeoutId = setTimeout(() => {
+                setIsExiting(true);
+                
+                // 2. 触发消失动画后，等待它完成再切换下一句
+                timeoutId = setTimeout(() => {
+                  const nextIndex = (currentIndex + 1) % effectWords.length;
+                  setIndex(nextIndex);
+                  setIsExiting(false);
+                  runCycle(nextIndex); // 递归开始下一个周期
+                }, exitTime);
+
+              }, totalEntranceTime + readingTime);
+            };
+
+            runCycle(index);
+            
+            return () => clearTimeout(timeoutId);
+          }, []);
+
+          return React.createElement(window.TextGenerateEffect, {
+            words: effectWords[index],
+            className: "text-center text-gray-900 font-medium tracking-widest leading-relaxed text-3xl",
+            duration: 1.2,
+            filter: true,
+            isExiting: isExiting
+          });
+        };
+
+        root.render(React.createElement(TextRotator));
+      }
+    });
+
+    const words = [
+      
+      "想象另一种可能",
+      "不思量，自难忘",
+      "美，是克制之后的结果。",
+      "思想需要留白。",
+      "为你千千万万遍",
+      "追光而遇，沐光而行",
+      "等待和希望。",
+      "明天又是新的一天了",
+      "过去都是假的，回忆没有归路",
+      "重要的不是过去，而是未来",
+      "思想在静处生长。",
+      "满纸荒唐言，一把辛酸泪",
+      "宇宙由故事构成，而非原子",
+      "相爱太短，遗忘太长",
+      "命里有时终须有"
+    ];
+
+    /*
+    const container = document.getElementById('container');
+    const COUNT = 4; // 减少背景文字数量
+
+    function random(min, max) {
+      return Math.random() * (max - min) + min;
+    }
+
+    // 重新定义位置，避开中心区域 (25%-75%, 35%-65%)
+    const positions = [
+      { left: '8%', top: '10%' },   // 左上
+      { left: '82%', top: '12%' },  // 右上
+      { left: '10%', top: '80%' },  // 左下
+      { left: '80%', top: '78%' }   // 右下
+    ];
+
+    function pickRandomWords(pool, count) {
+      const shuffled = pool.slice().sort(() => 0.5 - Math.random());
+      return shuffled.slice(0, count);
+    }
+
+    const activeWords = pickRandomWords(words, COUNT);
+
+    for (let i = 0; i < COUNT; i++) {
+      const el = document.createElement('div');
+      el.className = 'floating-text';
+      el.innerText = activeWords[i];
+
+      el.style.left = positions[i].left;
+      el.style.top = positions[i].top;
+      el.style.animationDuration = random(8, 12) + 's';
+      el.style.animationDelay = random(0, 3) + 's';
+      el.style.fontSize = random(15, 18) + 'px';
+
+      container.appendChild(el);
+    }
+    */
+  </script>
+</body>
+</html>

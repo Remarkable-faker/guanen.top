@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>冠恩书屋 · 漂流计划</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+SC:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <script>
+    window._AMapSecurityConfig = { securityJsCode: "0f19a109043d7ac7d214666a849004a4" };
+  </script>
+  <script src="https://webapi.amap.com/maps?v=2.0&key=bb3b7a0c75ca8febc85078fbc811f5b1&plugin=AMap.Geocoder,AMap.Polyline,AMap.GeometryUtil"></script>
+
+  <style>
+    * { box-sizing: border-box; margin:0; padding:0; }
+    html, body { width:100%; height:100%; overflow: hidden; }
+    body { font-family: "Source Han Serif SC", "Noto Serif SC", "Songti SC", serif; background:#f5f4f2; color:#333; }
+    
+    /* ===== 开屏动画 ===== */
+    #splash-screen { position: fixed; inset: 0; background: radial-gradient(circle at center, rgba(255,255,255,0.95), #f5f4f2 70%); z-index: 9999; transition: opacity 1.5s cubic-bezier(0.4, 0, 0.2, 1), visibility 1.5s; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .splash-content { text-align: center; z-index: 2; transition: transform 1.8s cubic-bezier(0.4, 0, 0.2, 1), opacity 1.5s; }
+    #splash-screen.fade-out { opacity: 0; visibility: hidden; }
+    #splash-screen.fade-out .splash-content { transform: scale(1.1); opacity: 0; }
+    .splash-zh { font-size: clamp(28px, 4vw, 52px); letter-spacing: 0.18em; margin-bottom: 24px; white-space: nowrap; color: #333; font-weight: bold; }
+    .splash-zh span { display: inline-block; opacity: 0; filter: blur(6px); transform: translateY(8px); animation: reveal 1.2s ease forwards; }
+    .splash-zh span:nth-child(1) { animation-delay: 0.1s; }
+    .splash-zh span:nth-child(2) { animation-delay: 0.2s; }
+    .splash-zh span:nth-child(3) { animation-delay: 0.3s; }
+    .splash-zh span:nth-child(4) { animation-delay: 0.4s; }
+    .splash-zh span:nth-child(5) { animation-delay: 0.5s; }
+    .splash-zh span:nth-child(6) { animation-delay: 0.6s; }
+    .splash-zh span:nth-child(7) { animation-delay: 0.7s; }
+    .splash-zh span:nth-child(8) { animation-delay: 0.8s; }
+    .splash-zh span:nth-child(9) { animation-delay: 0.9s; }
+    .splash-en { font-family: "Cormorant SC", serif; font-size: clamp(14px, 2vw, 20px); letter-spacing: 0.32em; opacity: 0; animation: fadeIn 2s ease forwards; animation-delay: 1.5s; color: #6b705c; }
+    @keyframes reveal { to { opacity: 1; filter: blur(0); transform: none; } }
+    @keyframes fadeIn { to { opacity: 1; } }
+
+    /* ===== 页面主布局 (含移动端上下分层) ===== */
+    .page { display: flex; height: 100vh; width: 100vw; animation: pageReveal 2s ease forwards; animation-delay: 3s; opacity: 0; }
+    @keyframes pageReveal { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    #map { flex: 2.2; height: 100%; min-height: 400px; position: relative; }
+    
+    .info-panel { flex: 1; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); padding: 28px 24px; border-left: 1px solid #e0e0e0; display: flex; flex-direction: column; overflow-y: auto; z-index: 10; box-shadow: -5px 0 20px rgba(0,0,0,0.03); }
+    
+    /* 📱 移动端完美比例适配 */
+    @media (max-width: 768px) {
+      .page { flex-direction: column; }
+      /* 地图占比扩大到 55vh */
+      #map { flex: none; height: 55vh; min-height: unset; width: 100%; }
+      /* 面板上移覆盖地图边缘，营造抽屉感 */
+      .info-panel { flex: none; height: 50vh; width: 100%; border-left: none; border-top: 1px solid #eee; padding: 25px 15px; border-radius: 24px 24px 0 0; margin-top: -25px; position: relative; z-index: 20; background: rgba(255,255,255,0.98); }
+      .night-mode .info-panel { background: rgba(20, 26, 35, 0.98); border-top-color: #333; }
+      /* 移动端骰子挪到地图中下部，防止被面板遮挡 */
+      .random-btn { bottom: 53vh !important; right: 15px !important; }
+    }
+
+    .info-header { margin-bottom: 20px; }
+    .info-header h1 { font-size: 22px; font-weight: 600; margin-bottom: 6px; letter-spacing: 1px; color: #333; }
+    .info-header p { font-size: 13px; color: #777; }
+    
+    /* ===== 书籍卡片与封面 ===== */
+    .book-card { flex: 1; background: #faf9f7; border-radius: 12px; padding: 20px; box-shadow: 0 6px 18px rgba(0,0,0,0.06); display: flex; flex-direction: column; margin-bottom: 20px; border: 1px solid #eee; }
+    .book-header-layout { display: flex; gap: 18px; margin-bottom: 15px; }
+    .book-cover-container { width: 85px; height: 120px; flex-shrink: 0; border-radius: 6px; overflow: hidden; box-shadow: 2px 4px 12px rgba(0,0,0,0.15); background: #e9e8e4; position: relative; }
+    .book-cover-container img { width: 100%; height: 100%; object-fit: cover; }
+    .book-cover-fallback { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #e9c46a, #f4a261); color: white; font-size: 32px; font-family: "Cormorant SC", serif; }
+    .book-info-text { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+    .book-title { font-size: 18px; font-weight: 600; margin-bottom: 6px; line-height: 1.3; color: #333; }
+    .book-author { font-size: 13px; color: #666; margin-bottom: 12px; }
+    .book-meta { font-size: 13px; line-height: 1.8; color: #888; }
+    .book-meta span { color: #444; font-weight: 500; }
+    
+    /* 统计区 */
+    .book-stats { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; padding: 15px; background: #f0f0ea; border-radius: 8px; border: 1px solid #e5e5df; justify-content: space-between; }
+    .stat-item { text-align: center; width: 30%; margin-bottom: 5px; }
+    .stat-value { display: block; font-size: 18px; font-weight: 600; color: #6b705c; font-family: Arial, sans-serif; }
+    .stat-label { font-size: 11px; color: #888; margin-top: 4px; display: block; }
+    
+    /* 按钮与寄语 */
+    .reader-note { font-size: 14px; color: #444; font-style: italic; line-height: 1.6; margin-bottom: 15px; border-left: 3px solid #d4a373; padding-left: 10px; }
+    .btn-postcard { background: linear-gradient(135deg, #d4a373, #b5835a); color: white; border: none; width: 100%; padding: 12px; border-radius: 8px; font-size: 14px; font-weight: bold; letter-spacing: 1px; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 10px rgba(212, 163, 115, 0.3); }
+    .btn-postcard:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(212, 163, 115, 0.5); }
+
+    /* 时间轴 */
+    .history-title { font-weight: 600; margin: 25px 0 15px 0; color: #333; font-size: 15px; display: flex; align-items: center; gap: 8px; }
+    .journey-timeline { border-left: 2px solid #e0e0d0; padding-left: 20px; margin-left: 6px; }
+    .timeline-node { position: relative; margin-bottom: 25px; }
+    .timeline-node::before { content: ""; position: absolute; left: -26px; top: 5px; width: 10px; height: 10px; background: #a5a58d; border-radius: 50%; border: 2px solid #faf9f7; box-shadow: 0 0 0 1px #a5a58d; }
+    .node-city { font-weight: 600; color: #333; font-size: 14px; margin-bottom: 3px; }
+    .node-meta { font-size: 12px; color: #888; margin-bottom: 8px; }
+    .node-content { font-size: 13px; color: #444; line-height: 1.6; background: #fff; padding: 12px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); border: 1px solid #f0f0ea; position: relative; }
+    .node-content::before { content: ''; position: absolute; left: -6px; top: 12px; width: 10px; height: 10px; background: #fff; transform: rotate(45deg); border-left: 1px solid #f0f0ea; border-bottom: 1px solid #f0f0ea; }
+    
+    /* ===== 顶部导航 ===== */
+    .user-access { position: fixed; top: 20px; left: 20px; z-index: 999; background: rgba(255,255,255,0.85); padding: 8px 15px; border-radius: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); display: flex; align-items: center; gap: 10px; backdrop-filter: blur(10px); border: 1px solid rgba(107, 112, 92, 0.2); animation: pageReveal 2s ease forwards; animation-delay: 3.2s; opacity: 0; }
+    .user-access a, .user-access span { font-size: 14px; color: #6b705c; text-decoration: none; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
+    .user-access a:hover, .user-access span:hover { color: #a5a58d; }
+    .user-access .divider { width: 1px; height: 16px; background: rgba(107, 112, 92, 0.2); margin: 0 5px; }
+    .user-access .user-info { display: none; align-items: center; gap: 8px; }
+    .backpack-trigger { display: flex; align-items: center; gap: 5px; padding: 4px 12px; background: #6b705c; color: white !important; border-radius: 20px; font-size: 13px !important; }
+
+    /* ===== 左下角访客痕迹 ===== */
+    .visitor-trace { position: absolute; bottom: 30px; left: 25px; z-index: 200; pointer-events: none; font-size: 13px; color: #6b705c; line-height: 1.8; text-shadow: 0 0 10px rgba(255,255,255,0.9), 1px 1px 3px rgba(255,255,255,0.8); transition: all 0.5s ease; opacity: 0; font-weight: bold; background: rgba(255,255,255,0.4); padding: 8px 15px; border-radius: 12px; backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.3); }
+    .night-mode .visitor-trace { color: #d4a373; text-shadow: 0 0 10px rgba(0,0,0,0.9); background: rgba(0,0,0,0.4); border-color: rgba(255,255,255,0.1); }
+    .visitor-trace.visible { opacity: 1; animation: fadeInUp 1s ease forwards; }
+    .visitor-trace p { margin: 0; }
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    @media (max-width: 768px) {
+      .visitor-trace { bottom: 80px; left: 15px; font-size: 12px; padding: 6px 12px; }
+    }
+
+    /* ===== 悬浮按钮 ===== */
+    .float-btn { position: fixed; width: 46px; height: 46px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(0,0,0,0.15); cursor: pointer; z-index: 999; transition: all 0.3s; font-size: 20px; border: 1px solid rgba(255,255,255,0.3); backdrop-filter: blur(5px); }
+    .random-btn { bottom: 30px; right: 30px; background: rgba(107, 112, 92, 0.9); color: #fff; }
+    .random-btn:hover { transform: rotate(15deg) scale(1.1); background: #a5a58d; }
+    .night-mode-toggle { top: 20px; right: 20px; background: rgba(255, 255, 255, 0.9); color: #333; }
+    .night-mode-toggle:hover { transform: scale(1.1); }
+
+    /* ===== 📍 地图静态大图标 (纯正展示你提供的 SVG) ===== */
+    .custom-marker { 
+      width: 40px; height: 40px; 
+      cursor: pointer; 
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
+    }
+    .custom-marker svg { width: 100%; height: 100%; transition: all 0.3s; }
+    .custom-marker svg path { fill: #edbe5c; transition: fill 0.3s; }
+    .custom-marker:hover { 
+      transform: scale(1.15) translateY(-5px); 
+      z-index: 1000; 
+      filter: drop-shadow(0 8px 12px rgba(237, 190, 92, 0.5));
+    }
+
+    /* 星星小标记 */
+    .star-marker { width: 6px; height: 6px; background: #fff; border-radius: 50%; box-shadow: 0 0 8px #fff, 0 0 15px rgba(255, 255, 255, 0.8); cursor: pointer; transition: all 0.3s ease; animation: starTwinkle var(--twinkle-duration, 2s) ease-in-out infinite; }
+    .star-marker:hover { transform: scale(2); box-shadow: 0 0 12px #fff, 0 0 20px rgba(255, 255, 255, 1); z-index: 1000; }
+    @keyframes starTwinkle { 0%, 100% { opacity: 0.4; transform: scale(1); } 50% { opacity: 1; transform: scale(1.2); } }
+    
+    /* ===== ✈️ 轨迹动画纸飞机 (你提供的 SVG) ===== */
+    .head-icon-svg { 
+      width: 32px; height: 32px; 
+      filter: drop-shadow(0 3px 6px rgba(0,0,0,0.3)); 
+      transition: transform 0.05s linear; 
+      display: flex; align-items: center; justify-content: center;
+    }
+    .head-icon-svg svg { width: 100%; height: 100%; }
+    .head-icon-svg path { fill: #e67e22; transition: fill 0.3s; }
+    /* 夜间模式让纸飞机发出幽蓝光芒 */
+    .night-mode .head-icon-svg path { fill: #00f2ff; }
+    .night-mode .head-icon-svg { filter: drop-shadow(0 0 10px rgba(0, 242, 255, 0.8)); }
+
+    /* ===== 💬 弹窗与高德信息窗优化 (圆角+暗黑) ===== */
+    .amap-info-content { border-radius: 16px !important; padding: 16px !important; box-shadow: 0 8px 24px rgba(0,0,0,0.12) !important; border: none !important; background: #fff !important; font-family: "Source Han Serif SC", serif; }
+    .amap-info-sharp { border-top-color: #fff !important; }
+    .info-window-title { font-weight: bold; font-size: 16px; margin-bottom: 6px; color: #333; }
+    .info-window-desc { font-size: 12px; color: #666; }
+
+    /* ===== 🌙 夜间模式全局样式 ===== */
+    body.night-mode { background: #0a0e14; color: #d1d1d1; }
+    .night-mode .info-panel { background: rgba(15, 20, 28, 0.85); border-left: 1px solid #1a222d; color: #d1d1d1; }
+    .night-mode .info-header h1 { color: #fff; }
+    .night-mode .book-card { background: #161c24; border-color: #222; box-shadow: 0 6px 18px rgba(0,0,0,0.3); }
+    .night-mode .book-title { color: #fff; }
+    .night-mode .book-meta span { color: #ccc; }
+    .night-mode .book-stats { background: #1e2530; border-color: #2a3340; }
+    .night-mode .stat-item { border-right-color: #333; }
+    .night-mode .stat-value { color: #d4a373; }
+    .night-mode .node-content { background: #1e2530; color: #ccc; box-shadow: 0 2px 8px rgba(0,0,0,0.2); border-color: #2a3340; }
+    .night-mode .node-content::before { background: #1e2530; border-color: #2a3340; }
+    .night-mode .user-access { background: rgba(20, 26, 35, 0.7); border-color: rgba(165, 165, 141, 0.3); }
+    
+    /* 黑夜模式下地图打点图标变色 */
+    .night-mode .custom-marker svg path { fill: #d4a373; }
+    
+    /* 修复黑夜模式下地图弹窗太白的问题 */
+    .night-mode .amap-info-content { background-color: rgba(30, 37, 48, 0.95) !important; backdrop-filter: blur(8px); border: 1px solid #444 !important; color: #e2e8f0 !important; box-shadow: 0 8px 24px rgba(0,0,0,0.6) !important; }
+    .night-mode .amap-info-sharp { border-top-color: rgba(30, 37, 48, 0.95) !important; }
+    .night-mode .info-window-title { color: #fff; }
+    .night-mode .info-window-desc { color: #aaa; }
+
+    #night-sky { position: fixed; inset: 0; pointer-events: none; z-index: 5; display: none; overflow: hidden; }
+    .night-mode #night-sky { display: block; }
+    .meteor { position: absolute; width: 2px; height: 2px; background: linear-gradient(to right, #fff, transparent); border-radius: 50%; opacity: 0; filter: drop-shadow(0 0 6px #fff); animation: meteorRain linear infinite; }
+    @keyframes meteorRain { 0% { transform: translate(100vw, -10vh) rotate(-45deg); opacity: 1; width: 150px; } 15% { opacity: 1; } 25% { transform: translate(40vw, 50vh) rotate(-45deg); opacity: 0; width: 0; } 100% { opacity: 0; } }
+
+    /* ===== 骨架屏动画 ===== */
+    @keyframes shimmer { 0% { background-position: -400px 0; } 100% { background-position: 400px 0; } }
+    .skeleton-box { background: #f6f7f8; background-image: linear-gradient(to right, #f6f7f8 0%, #edeef1 20%, #f6f7f8 40%, #f6f7f8 100%); background-repeat: no-repeat; background-size: 800px 100%; animation: shimmer 1.5s infinite linear forwards; border-radius: 4px; }
+    .night-mode .skeleton-box { background: #2a3545; background-image: linear-gradient(to right, #2a3545 0%, #3a4b5c 20%, #2a3545 40%, #2a3545 100%); }
+    .sk-title { height: 28px; width: 60%; margin-bottom: 12px; }
+    .sk-author { height: 18px; width: 30%; margin-bottom: 24px; }
+    .sk-meta { height: 16px; width: 80%; margin-bottom: 10px; }
+    .sk-stats { height: 90px; width: 100%; margin-top: 20px; border-radius: 8px; }
+
+    /* 表单与弹窗 */
+    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+    .modal-content { background: #fff; padding: 30px; border-radius: 16px; width: 90%; max-width: 450px; max-height: 90vh; overflow-y: auto; box-shadow: 0 15px 35px rgba(0,0,0,0.2); }
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; margin-bottom: 5px; font-size: 13px; color: #555; font-weight: 600; }
+    .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; font-size: 14px; background: #f9f9f9; transition: border 0.3s; }
+    .form-group input:focus, .form-group textarea:focus { border-color: #6b705c; outline: none; background: #fff; }
+    .btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; transition: all 0.3s; }
+    .btn-primary { background: #6b705c; color: white; }
+    .btn-primary:hover { background: #555948; }
+    .btn-outline { background: transparent; border: 1px solid #6b705c; color: #6b705c; }
+    .btn-outline:hover { background: #f5f4f2; }
+
+    #postcard-canvas-container { display: none; }
+  </style>
+</head>
+<body>
+  <div id="splash-screen">
+    <div class="splash-content">
+      <div class="splash-zh">
+        <span>循</span><span>此</span><span>苦</span><span>旅</span><span>，</span>
+        <span>以</span><span>达</span><span>天</span><span>际</span>
+      </div>
+      <div class="splash-en">Per Aspera Ad Astra</div>
+    </div>
+  </div>
+
+  <div class="user-access">
+    <a href="../index.php" title="返回首页"><i class="fas fa-home" style="font-size: 16px;"></i></a>
+    <div class="divider"></div>
+    <div id="guest-view" style="display: flex; align-items: center; gap: 10px;">
+      <span onclick="openModal('loginModal')">登录 / 注册</span>
+    </div>
+    <div id="user-view" class="user-info">
+      <span id="display-nickname" style="font-weight:bold;">用户名</span>
+      <span class="btn-logout" onclick="handleLogout()">[退出]</span>
+    </div>
+    <div class="divider"></div>
+    <a href="library.html">藏书阁</a>
+  </div>
+
+  <div class="float-btn random-btn" title="随机探索" onclick="randomExplore()"><i class="fas fa-dice"></i></div>
+  <div class="float-btn night-mode-toggle" id="nightModeToggle" title="昼夜交替" onclick="toggleNightMode()"><i class="fas fa-moon"></i></div>
+
+  <div class="page">
+    <div id="map">
+      <div class="visitor-trace" id="visitor-trace">
+        <p id="vt-count">今日有 ... 位读者经过</p>
+        <p id="vt-last-time" style="font-size: 11px; font-weight: normal; opacity: 0.8; margin-top: 2px;">最新脚印：...</p>
+      </div>
+    </div>
+    
+    <div id="night-sky" class="night-only"></div>
+    
+    <div class="info-panel">
+      <div class="info-header">
+        <h1>冠恩书籍漂流</h1>
+        <p>记录文字跨越山海的轨迹</p>
+        <button class="btn btn-primary" style="margin-top: 15px; width: 100%;" onclick="openModal('registerModal')"><i class="fas fa-plus"></i> 放流新书</button>
+      </div>
+
+      <div class="book-card" id="bookInfo">
+        <div style="text-align:center; padding:50px 0; color:#aaa;">
+          <i class="fas fa-map-marked-alt" style="font-size:40px; margin-bottom:15px; opacity:0.5;"></i>
+          <p>点击地图上的图钉标记<br>翻开一段漂流故事</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="postcard-canvas-container">
+    <canvas id="postcardCanvas" width="800" height="1200"></canvas>
+  </div>
+
+  <div id="registerModal" class="modal">
+    <div class="modal-content">
+      <h2 style="margin-bottom: 20px; color:#6b705c;"><i class="fas fa-paper-plane"></i> 放流新书</h2>
+      <form id="registerForm">
+        <div class="form-group"><label>书名</label><input type="text" name="title" required placeholder="例如：瓦尔登湖"></div>
+        <div class="form-group"><label>作者</label><input type="text" name="author" required placeholder="例如：亨利·戴维·梭罗"></div>
+        <div class="form-group"><label>ISBN (选填，获取真实封面)</label><input type="text" name="isbn" placeholder="如：9787544253994"></div>
+        <div class="form-group"><label>放流城市</label><input type="text" name="city" required placeholder="例如：宜昌"></div>
+        <div class="form-group"><label>你的称呼</label><input type="text" name="reader" id="reg-reader" required></div>
+        <div class="form-group"><label>扉页寄语</label><textarea name="note" rows="3" placeholder="想对捡到这本书的人说点什么..."></textarea></div>
+        <div style="display: flex; gap: 10px; margin-top: 25px;">
+          <button type="button" class="btn btn-outline" style="flex: 1;" onclick="closeModal('registerModal')">取消</button>
+          <button type="submit" class="btn btn-primary" style="flex: 1;">确认放流</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="updateModal" class="modal">
+    <div class="modal-content">
+      <h2 style="margin-bottom: 20px; color:#6b705c;"><i class="fas fa-pen-nib"></i> 更新漂流状态</h2>
+      <form id="updateForm">
+        <input type="hidden" name="bookId">
+        <div class="form-group"><label>当前阅读者 (昵称)</label><input type="text" name="reader" id="update-reader" required></div>
+        <div class="form-group"><label>当前所在城市</label><input type="text" name="city" required placeholder="例如：武汉"></div>
+        <div class="form-group">
+          <label>书籍状态</label>
+          <select name="status">
+            <option value="阅读中">📖 阅读中</option>
+            <option value="已读待寄">⌛ 已读待寄</option>
+            <option value="寄送中">🚚 寄送中</option>
+          </select>
+        </div>
+        <div class="form-group"><label>寄语/笔记</label><textarea name="note" rows="3" placeholder="写下你的阅读感悟..."></textarea></div>
+        <div style="display: flex; gap: 10px; margin-top: 25px;">
+          <button type="button" class="btn btn-outline" style="flex: 1;" onclick="closeModal('updateModal')">取消</button>
+          <button type="submit" class="btn btn-primary" style="flex: 1;">确认更新</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="loginModal" class="modal">
+    <div class="modal-content">
+      <h2 style="margin-bottom:20px; text-align:center; color:#6b705c;">验证身份</h2>
+      <div class="form-group"><label>账号</label><input type="text" id="login-username" placeholder="手机号"></div>
+      <div class="form-group"><label>密码</label><input type="password" id="login-password" placeholder="密码"></div>
+      <button class="btn btn-primary" style="width:100%; margin-top:10px;" onclick="handleLogin()">进入书屋</button>
+      <button class="btn btn-outline" style="width:100%; margin-top:10px; border:none;" onclick="closeModal('loginModal')">暂不登录</button>
+    </div>
+  </div>
+
+  <script>
+    // ===== 你提供的两个专属 SVG 字符串 =====
+    const customMapPinSVG = `<svg t="1772618406972" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="30169" width="200" height="200"><path d="M513.792 63.914667c-203.690667 0-368.810667 165.888-368.810667 370.986666 0 102.528 41.301333 195.2 108.117334 262.314667l260.693333 262.272 260.693333-262.272a372.48 372.48 0 0 0 108.074667-262.314667c-0.128-205.013333-165.248-370.986667-368.768-370.986666z m0 535.893333a163.413333 163.413333 0 0 1-116.096-48.512 165.461333 165.461333 0 0 1 0-232.789333 164.821333 164.821333 0 0 1 116.096-48.512c43.690667 0 85.504 17.621333 116.138667 48.512a165.418667 165.418667 0 0 1 47.872 116.394666 162.944 162.944 0 0 1-47.872 116.394667 165.802667 165.802667 0 0 1-116.138667 48.512z" fill="#FDCB42" p-id="30170"></path></svg>`;
+    const customPaperPlaneSVG = `<svg t="1772618258809" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="24404" width="200" height="200"><path d="M574.784 825.728l-14.16 50.944a366.144 366.144 0 0 0 174.72-72.496l-46.048-26.016a317.728 317.728 0 0 1-114.512 47.568zM778.176 689.312l26.016 46.032a366.08 366.08 0 0 0 72.496-174.72l-50.944 14.16a318.48 318.48 0 0 1-47.568 114.528zM334.688 778.176l-46.048 26.016a366.144 366.144 0 0 0 174.72 72.496l-14.16-50.944a318.528 318.528 0 0 1-114.512-47.568zM198.272 449.216a317.92 317.92 0 0 1 47.568-114.528l-26.016-46.032a366.08 366.08 0 0 0-72.496 174.72l50.944-14.16zM245.824 689.312a318.48 318.48 0 0 1-47.568-114.528l-50.944-14.144a366.144 366.144 0 0 0 72.496 174.72l26.016-46.048zM334.688 245.824a318.208 318.208 0 0 1 114.528-47.568l14.16-50.944a366.144 366.144 0 0 0-174.72 72.496l46.032 26.016zM574.784 198.272a318.208 318.208 0 0 1 114.528 47.568l46.048-26.016a366.144 366.144 0 0 0-174.72-72.496l14.144 50.944zM876.688 463.36a366.144 366.144 0 0 0-72.496-174.72l-26.016 46.032a318.48 318.48 0 0 1 47.568 114.528l50.944 14.16zM776.192 233.488l-14.704 8.32-44.256 25.008a322.72 322.72 0 0 1 39.952 39.952l25.008-44.256 8.32-14.704 8.128-14.384 10.496-18.56-18.56 10.496-14.384 8.128zM790.512 776.192l-8.32-14.704-25.008-44.256a322.72 322.72 0 0 1-39.952 39.952l44.256 25.008 14.704 8.32 14.384 8.128 18.56 10.496-10.496-18.56-8.128-14.384zM266.8 717.232l-25.008 44.256-8.32 14.704-8.128 14.384-10.496 18.56 18.56-10.496 14.384-8.128 14.704-8.32 44.256-25.008a322.72 322.72 0 0 1-39.952-39.952zM247.808 233.488l-14.384-8.128-18.56-10.496 10.496 18.56 8.128 14.384 8.32 14.704 25.008 44.256a322.72 322.72 0 0 1 39.952-39.952l-44.256-25.008-14.704-8.32zM263.84 657.44c3.104 5.264 6.112 10.592 9.536 15.648 3.28 4.832 6.912 9.376 10.464 14a290.288 290.288 0 0 0 53.056 53.072c4.624 3.552 9.168 7.2 14 10.48 5.056 3.424 10.368 6.432 15.648 9.536a285.728 285.728 0 0 0 72.832 30.208l-15.36-55.296c-2.56-1.008-5.136-1.968-7.664-3.072-5.968-2.608-11.84-5.392-17.552-8.464a245.088 245.088 0 0 1-15.792-9.456 241.424 241.424 0 0 1-73.104-73.12 238 238 0 0 1-9.456-15.792 236.192 236.192 0 0 1-8.464-17.552c-1.104-2.512-2.064-5.088-3.072-7.664l-55.296-15.36a286.912 286.912 0 0 0 30.224 72.832zM760.16 366.56c-3.104-5.264-6.112-10.592-9.536-15.648-3.28-4.832-6.912-9.376-10.464-14a290.288 290.288 0 0 0-53.056-53.072c-4.624-3.552-9.168-7.2-14-10.48-5.056-3.424-10.368-6.432-15.648-9.536a285.728 285.728 0 0 0-72.832-30.208l15.36 55.28c2.56 1.008 5.136 1.968 7.664 3.072 5.968 2.608 11.84 5.392 17.552 8.464 5.424 2.912 10.624 6.16 15.792 9.456a241.424 241.424 0 0 1 73.104 73.12c3.312 5.168 6.544 10.368 9.456 15.792 3.072 5.712 5.856 11.568 8.464 17.552 1.104 2.512 2.064 5.104 3.072 7.664l55.28 15.36a286.432 286.432 0 0 0-30.208-72.816zM673.088 750.624c4.832-3.28 9.376-6.928 14-10.48a289.28 289.28 0 0 0 53.056-53.072c3.552-4.624 7.2-9.168 10.464-14 3.424-5.056 6.432-10.368 9.536-15.648a285.488 285.488 0 0 0 30.208-72.832l-55.296 15.36c-1.008 2.56-1.968 5.136-3.072 7.664-2.608 5.968-5.392 11.84-8.464 17.552-2.912 5.424-6.16 10.624-9.456 15.792a241.776 241.776 0 0 1-73.104 73.12c-5.168 3.312-10.368 6.544-15.792 9.456-5.712 3.072-11.584 5.856-17.552 8.464-2.512 1.104-5.088 2.064-7.664 3.072l-15.36 55.296a285.952 285.952 0 0 0 72.832-30.208c5.28-3.104 10.608-6.128 15.664-9.536zM300.464 398.832c2.912-5.424 6.16-10.624 9.456-15.792a241.776 241.776 0 0 1 73.104-73.12c5.168-3.312 10.368-6.544 15.792-9.456 5.712-3.072 11.584-5.856 17.552-8.464 2.512-1.104 5.104-2.064 7.664-3.072l15.36-55.28a285.952 285.952 0 0 0-72.832 30.208c-5.264 3.104-10.592 6.112-15.648 9.536-4.832 3.28-9.376 6.928-14 10.48a289.28 289.28 0 0 0-53.056 53.072c-3.552 4.624-7.2 9.168-10.464 14-3.424 5.056-6.432 10.368-9.536 15.648a285.488 285.488 0 0 0-30.208 72.832l55.28-15.36c1.008-2.56 1.968-5.136 3.072-7.664 2.608-6 5.392-11.872 8.464-17.568zM544.8 209.824l-4.56-16.4-13.632-49.056-4.48-16.112-4.48-16.112L512 91.776l-5.664 20.368-4.48 16.112-4.48 16.112-13.632 49.056-4.56 16.4-4.688 16.896-14.176 51.024C476.992 274.08 494.256 272 512 272s35.008 2.08 51.664 5.744l-14.176-51.024-4.688-16.896zM895.744 501.872l-16.112-4.48-49.056-13.632-16.4-4.56-16.896-4.688-51.024-14.176C749.92 477.008 752 494.256 752 512s-2.08 34.992-5.744 51.664l51.024-14.176 16.896-4.688 16.4-4.56 49.056-13.632 16.112-4.48 16.112-4.48L932.224 512l-20.368-5.664-16.112-4.464zM512 752c-17.744 0-35.008-2.08-51.664-5.744l14.176 51.024 4.688 16.896 4.56 16.4 13.632 49.056 4.48 16.112 4.48 16.112 5.648 20.368 5.664-20.368 4.48-16.112 4.48-16.112 13.632-49.056 4.56-16.4 4.688-16.896 14.176-51.024A240.384 240.384 0 0 1 512 752zM209.824 544.8l16.896 4.688 51.024 14.176C274.08 546.992 272 529.744 272 512s2.08-34.992 5.744-51.664l-51.024 14.176-16.896 4.688-16.4 4.56-49.056 13.632-16.112 4.48-16.112 4.48L91.776 512l20.368 5.664 16.112 4.48 16.112 4.48 49.056 13.632 16.4 4.544zM512 720c20.528 0 40.32-3.104 59.056-8.672a208.16 208.16 0 0 0 20.272-7.136c0.176-0.08 0.368-0.128 0.544-0.192 6.608-2.752 13.056-5.808 19.28-9.2a209.392 209.392 0 0 0 83.648-83.648c3.392-6.24 6.448-12.688 9.2-19.28 0.08-0.176 0.128-0.368 0.192-0.544 2.736-6.592 5.088-13.36 7.136-20.272C716.896 552.32 720 532.528 720 512s-3.104-40.32-8.672-59.072a204 204 0 0 0-7.136-20.272c-0.08-0.176-0.128-0.368-0.192-0.544a204.88 204.88 0 0 0-9.2-19.28 209.488 209.488 0 0 0-83.648-83.648c-6.24-3.392-12.688-6.448-19.28-9.2-0.176-0.08-0.368-0.128-0.544-0.192a204 204 0 0 0-20.272-7.136C552.32 307.104 532.528 304 512 304s-40.32 3.104-59.056 8.672a208.16 208.16 0 0 0-20.272 7.136c-0.176 0.08-0.368 0.128-0.544 0.192-6.608 2.752-13.056 5.808-19.28 9.2a209.392 209.392 0 0 0-83.648 83.648c-3.392 6.24-6.448 12.688-9.2 19.28-0.08 0.176-0.128 0.368-0.192 0.544a204 204 0 0 0-7.136 20.272C307.104 471.68 304 491.472 304 512s3.104 40.32 8.672 59.072c2.048 6.912 4.4 13.68 7.136 20.272 0.08 0.176 0.128 0.368 0.192 0.544 2.752 6.608 5.808 13.056 9.2 19.28a209.488 209.488 0 0 0 83.648 83.648c6.24 3.392 12.688 6.448 19.28 9.2 0.176 0.08 0.368 0.128 0.544 0.192 6.592 2.736 13.36 5.088 20.272 7.136C471.68 716.896 491.472 720 512 720zM352 512c0-88.224 71.776-160 160-160s160 71.776 160 160-71.776 160-160 160-160-71.776-160-160z" fill="" p-id="24405"></path><path d="M640 512c0-70.576-57.424-128-128-128s-128 57.424-128 128 57.424 128 128 128 128-57.424 128-128z m-208 0c0-44.112 35.888-80 80-80s80 35.888 80 80-35.888 80-80 80-80-35.888-80-80z" fill="" p-id="24406"></path><path d="M512 512m-48 0a48 48 0 1 0 96 0 48 48 0 1 0-96 0Z" fill="" p-id="24407"></path></svg>`;
+
+    // ===== 核心状态 =====
+    let isNightMode = false;
+    let amapInstance = null;
+    let books = []; 
+    let allNodes = []; 
+    let infoWindow = null; 
+    let currentPolyline = null;
+    let currentActiveBook = null; 
+    let currentHistoryData = [];  
+
+    function escapeHTML(str) {
+      if (!str || typeof str !== 'string') return str;
+      return str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag]));
+    }
+
+    // ===== UI 交互逻辑 =====
+    function toggleNightMode() {
+      isNightMode = !isNightMode;
+      document.body.classList.toggle('night-mode', isNightMode);
+      document.getElementById('nightModeToggle').innerHTML = isNightMode ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+      if (amapInstance) amapInstance.setMapStyle(isNightMode ? 'amap://styles/dark' : 'amap://styles/whitesmoke');
+      isNightMode ? startMeteorRain() : stopMeteorRain();
+      if (typeof refreshMarkers === 'function') refreshMarkers();
+      
+      if (currentActiveBook && currentHistoryData.length > 0) {
+        renderTrajectory(currentActiveBook, currentHistoryData);
+      }
+    }
+
+    let meteorInterval;
+    function startMeteorRain() {
+      if(meteorInterval) return;
+      const sky = document.getElementById('night-sky');
+      meteorInterval = setInterval(() => {
+        if(!isNightMode) return;
+        const meteor = document.createElement('div');
+        meteor.className = 'meteor';
+        meteor.style.top = Math.random() * 30 + 'vh';
+        meteor.style.left = (50 + Math.random() * 50) + 'vw';
+        meteor.style.animationDuration = (Math.random() * 1.5 + 1) + 's';
+        sky.appendChild(meteor);
+        setTimeout(() => meteor.remove(), 2500);
+      }, 4000);
+    }
+    function stopMeteorRain() { clearInterval(meteorInterval); meteorInterval = null; document.getElementById('night-sky').innerHTML=''; }
+
+    function openModal(id, bookId = null) { 
+      document.getElementById(id).style.display = 'flex'; 
+      if (bookId && id === 'updateModal') {
+        document.querySelector('#updateForm input[name="bookId"]').value = bookId;
+        if (document.getElementById('user-view').style.display === 'flex') {
+            const name = document.getElementById('display-nickname').textContent;
+            document.getElementById('update-reader').value = name;
+            document.getElementById('update-reader').readOnly = true;
+            document.getElementById('update-reader').style.background = '#eee';
+        }
+      }
+    }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+    // ===== 左下角访客痕迹 =====
+    function initVisitorTrace() {
+      fetch('../api/visitor_trace_api.php', { credentials: 'include' }).then(r => r.json()).then(result => {
+        if (result.success && result.data) {
+          document.getElementById('vt-count').innerText = result.data.visitor_text || `今日有 ${result.data.visitor_count || 0} 位读者经过`;
+          document.getElementById('vt-last-time').innerText = result.data.last_msg_text || (result.data.last_update ? `最新脚印：${result.data.last_update}` : '期待你留下第一行字');
+          document.getElementById('visitor-trace').classList.add('visible');
+        }
+      }).catch(e => {
+        document.getElementById('visitor-trace').classList.add('visible'); 
+      });
+    }
+
+    // ===== 登录系统 =====
+    document.getElementById('login-password').addEventListener('keypress', e => { if(e.key==='Enter') handleLogin(); });
+
+    async function checkLoginStatus() {
+      try {
+        const res = await fetch('../api/bc_user_api.php?action=check_status', { credentials: 'include' }).then(r=>r.json());
+        if (res.is_logged_in) {
+          document.getElementById('guest-view').style.display = 'none';
+          document.getElementById('user-view').style.display = 'flex';
+          document.getElementById('display-nickname').textContent = res.nickname;
+        }
+      } catch (e) {}
+    }
+
+    async function handleLogin() {
+      const u = document.getElementById('login-username').value, p = document.getElementById('login-password').value;
+      if(!u || !p) return alert('请输入完整');
+      try {
+        const res = await fetch('../api/bc_user_api.php?action=login', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({username:u,password:p}) }).then(r=>r.json());
+        if(res.success) { closeModal('loginModal'); checkLoginStatus(); } else alert(res.message);
+      } catch(e) { alert('登录异常'); }
+    }
+
+    // ===== 地图核心系统 =====
+    async function initMap() {
+      checkLoginStatus();
+      amapInstance = new AMap.Map('map', { zoom: 4.8, center: [108.9, 34.3], mapStyle: 'amap://styles/whitesmoke' });
+      infoWindow = new AMap.InfoWindow({ offset: new AMap.Pixel(0, -40) });
+      fetchBooks();
+      fetchNodes(); 
+    }
+
+    async function fetchBooks() {
+      try {
+        const res = await fetch('../api/book_crossing_api.php?action=get_books', { credentials: 'include' }).then(r=>r.json());
+        if (res.success || res.status === 'success') { books = res.data || []; refreshMarkers(); }
+      } catch (e) { console.error(e); }
+    }
+
+    async function fetchNodes() {
+      try {
+        const res = await fetch('../api/book_crossing_api.php?action=get_all_nodes', { credentials: 'include' }).then(r=>r.json());
+        if (res.success) { allNodes = res.data || []; refreshMarkers(); }
+      } catch (e) {}
+    }
+
+    let markers = [];
+    let starMarkers = [];
+    function refreshMarkers() {
+      if (markers) markers.forEach(m => { if (m) m.setMap(null); });
+      if (starMarkers) starMarkers.forEach(m => { if (m) m.setMap(null); });
+      
+      markers = [];
+      books.forEach(book => {
+        // 【关键防御】防止坐标不合法导致高德直接丢弃渲染
+        if (!book.lng || !book.lat) return;
+        const lng = Number(book.lng);
+        const lat = Number(book.lat);
+
+        // 【应用你指定的图钉 SVG】
+        const marker = new AMap.Marker({ 
+          position: [lng, lat], 
+          content: `<div class="custom-marker">${customMapPinSVG}</div>`, 
+          offset: new AMap.Pixel(-20, -40), 
+          zIndex: 110 
+        });
+        marker.on('click', () => {
+          infoWindow.setContent(`<div class="info-window-title">${escapeHTML(book.title)}</div><div class="info-window-desc">${escapeHTML(book.current_city)} · ${escapeHTML(book.current_reader)}</div>`);
+          infoWindow.open(amapInstance, [lng, lat]);
+          updateBookInfo(book);
+        });
+        marker.setMap(amapInstance);
+        markers.push(marker);
+      });
+
+      starMarkers = [];
+      allNodes.forEach(node => {
+        if (!node.lng || !node.lat) return;
+        const lng = Number(node.lng);
+        const lat = Number(node.lat);
+        const twinkleDuration = (Math.random() * 2 + 1.5).toFixed(1) + 's';
+        
+        const marker = new AMap.Marker({ position: [lng, lat], content: `<div class="star-marker" style="--twinkle-duration: ${twinkleDuration}"></div>`, offset: new AMap.Pixel(-3, -3), zIndex: 50 });
+        marker.on('click', () => {
+          infoWindow.setContent(`
+            <div class="info-window-title">✨ 星之回响</div>
+            <div class="info-window-desc">
+              <p style="margin-bottom:5px;">"${escapeHTML(node.note) || '在星空下留下了一段记忆...'}"</p>
+              <small style="color:#a5a58d;">—— ${escapeHTML(node.city)} · ${escapeHTML(node.reader)}</small>
+            </div>
+          `);
+          infoWindow.open(amapInstance, [lng, lat]);
+        });
+        marker.setMap(amapInstance);
+        starMarkers.push(marker);
+      });
+    }
+
+    window.randomExplore = function() {
+      if(!books.length) return;
+      const book = books[Math.floor(Math.random() * books.length)];
+      if(!book.lng || !book.lat) return;
+      amapInstance.setZoomAndCenter(5.5, [Number(book.lng), Number(book.lat)]);
+      infoWindow.setContent(`<div class="info-window-title">${escapeHTML(book.title)}</div><div class="info-window-desc">${escapeHTML(book.current_city)} · ${escapeHTML(book.current_reader)}</div>`);
+      infoWindow.open(amapInstance, [Number(book.lng), Number(book.lat)]);
+      updateBookInfo(book);
+    }
+
+    function calculateBookRunningDays(startDate) {
+      if (!startDate) return 0;
+      const start = new Date(startDate); const now = new Date();
+      start.setHours(0,0,0,0); now.setHours(0,0,0,0);
+      return Math.max(0, Math.floor((now.getTime() - start.getTime()) / 86400000));
+    }
+
+    // ===== 书籍详情展示 =====
+    async function updateBookInfo(book) {
+      currentActiveBook = book;
+      const info = document.getElementById('bookInfo');
+      
+      // 骨架屏
+      info.innerHTML = `
+        <div style="flex:1">
+          <div class="book-header-layout">
+            <div class="skeleton-box book-cover-container"></div>
+            <div class="book-info-text" style="flex:1;">
+               <div class="skeleton-box sk-title"></div>
+               <div class="skeleton-box sk-author"></div>
+               <div class="skeleton-box sk-meta"></div>
+               <div class="skeleton-box sk-meta" style="width:60%"></div>
+            </div>
+          </div>
+          <div class="skeleton-box sk-stats"></div>
+          <div class="skeleton-box sk-history-title"></div>
+        </div>
+      `;
+
+      // 请求数据
+      const [historyRes, statsRes] = await Promise.all([
+        fetch(`../api/book_crossing_api.php?action=get_history&book_id=${book.book_id}`).then(r=>r.json()).catch(()=>({success:false})),
+        fetch(`../api/book_crossing_api.php?action=get_book_stats&book_id=${book.book_id}`).then(r=>r.json()).catch(()=>({success:false}))
+      ]);
+
+      const history = historyRes.success ? historyRes.data : [];
+      currentHistoryData = history;
+      const stats = statsRes.success ? statsRes.data : { city_count:1, reader_count:1, total_days:1 };
+
+      // 精确里程计算
+      let exactDistanceKm = 0;
+      if (history.length > 1) {
+        for(let i=0; i<history.length-1; i++) {
+          const p1 = new AMap.LngLat(Number(history[i].lng), Number(history[i].lat));
+          const p2 = new AMap.LngLat(Number(history[i+1].lng), Number(history[i+1].lat));
+          exactDistanceKm += AMap.GeometryUtil.distance(p1, p2) / 1000; 
+        }
+      }
+      exactDistanceKm = exactDistanceKm > 0 ? Math.round(exactDistanceKm) : (stats.total_distance || 0);
+
+      // 封面生成
+      let coverHtml = `<div class="book-cover-fallback">${escapeHTML(book.title).charAt(0)}</div>`;
+      if (book.isbn) {
+        const coverUrl = `https://covers.openlibrary.org/b/isbn/${escapeHTML(book.isbn)}-M.jpg`;
+        coverHtml = `<img src="${coverUrl}" onerror="this.outerHTML='<div class=\\'book-cover-fallback\\'>${escapeHTML(book.title).charAt(0)}</div>'">`;
+      }
+
+      // 时间轴
+      const historyHtml = history.map(node => `
+        <div class="timeline-node">
+          <div class="node-city"><i class="fas fa-map-marker-alt" style="color:#d4a373"></i> ${escapeHTML(node.city)}</div>
+          <div class="node-meta">${node.log_date ? node.log_date.split(' ')[0] : ''} · ${escapeHTML(node.reader)}</div>
+          <div class="node-content">${escapeHTML(node.note) || '只留下了足迹，没有留下只言片语。'}</div>
+        </div>
+      `).join('');
+
+      // 渲染面板
+      info.innerHTML = `
+        <div style="flex:1; animation: fadeIn 0.6s ease;">
+          <div class="book-header-layout">
+            <div class="book-cover-container">${coverHtml}</div>
+            <div class="book-info-text">
+              <div class="book-title">${escapeHTML(book.title)}</div>
+              <div class="book-author">${escapeHTML(book.author)}</div>
+              <div class="book-meta">当前位置: <span>${escapeHTML(book.current_city)}</span></div>
+              <div class="book-meta">持有者: <span>${escapeHTML(book.current_reader)}</span></div>
+            </div>
+          </div>
+          
+          <div class="book-stats">
+            <div class="stat-item"><span class="stat-value">${stats.city_count}</span><span class="stat-label">途经城市</span></div>
+            <div class="stat-item"><span class="stat-value">${exactDistanceKm}</span><span class="stat-label">漂流公里</span></div>
+            <div class="stat-item"><span class="stat-value">${stats.reader_count}</span><span class="stat-label">传递人次</span></div>
+            <div class="stat-item" style="width:45%; margin-top:10px;"><span class="stat-value">${stats.total_days}</span><span class="stat-label">漂流天数</span></div>
+            <div class="stat-item" style="width:45%; margin-top:10px; border:none;"><span class="stat-value">${calculateBookRunningDays(stats.start_date)}</span><span class="stat-label">上线天数</span></div>
+          </div>
+
+          ${history.length > 0 ? `<div class="history-title"><i class="fas fa-route"></i> 漂流日志</div><div class="journey-timeline">${historyHtml}</div>` : ''}
+        </div>
+        
+        <div style="margin-top:20px; padding-top:15px; border-top:1px dashed #eee; animation: fadeIn 0.6s ease;">
+          <div class="reader-note">“${escapeHTML(book.note) || '期待开启一段新的相遇与旅程。'}”</div>
+          <button class="btn-postcard" onclick="generatePostcard()"><i class="fas fa-camera-retro"></i> 生成漂流明信片</button>
+          <button class="btn btn-outline" style="width: 100%; margin-top: 12px;" onclick="openModal('updateModal', '${book.book_id}')"><i class="fas fa-pen-nib"></i> 我也读过 / 更新状态</button>
+        </div>
+      `;
+
+      if(window.innerWidth <= 768) {
+        document.querySelector('.info-panel').scrollIntoView({ behavior: 'smooth' });
+      }
+
+      renderTrajectory(book, history);
+    }
+
+    // ===== 轨迹动画 (应用你指定的纸飞机 SVG) =====
+    function renderTrajectory(book, rawHistoryData) {
+      if (currentPolyline) { currentPolyline.remove(); currentPolyline = null; }
+      if (!rawHistoryData || rawHistoryData.length < 2) return;
+
+      const points = rawHistoryData.map(h => new AMap.LngLat(Number(h.lng), Number(h.lat)));
+      
+      let curvedPath = [];
+      const step = 0.002; // 平滑插值步长，减慢飞行速度
+      for (let i = 0; i < points.length - 1; i++) {
+        const p1 = points[i], p2 = points[i + 1];
+        const dist = AMap.GeometryUtil.distance(p1, p2);
+        const offset = Math.min(dist / 5, 300000); 
+        const angle = Math.atan2(p2.getLat() - p1.getLat(), p2.getLng() - p1.getLng());
+        const cp = new AMap.LngLat(
+          (p1.getLng() + p2.getLng())/2 + Math.cos(angle + Math.PI/2) * (offset/111000),
+          (p1.getLat() + p2.getLat())/2 + Math.sin(angle + Math.PI/2) * (offset/111000)
+        );
+        for (let t = 0; t <= 1; t += step) {
+          curvedPath.push(new AMap.LngLat(
+            (1-t)*(1-t)*p1.getLng() + 2*(1-t)*t*cp.getLng() + t*t*p2.getLng(),
+            (1-t)*(1-t)*p1.getLat() + 2*(1-t)*t*cp.getLat() + t*t*p2.getLat()
+          ));
+        }
+      }
+
+      const bgLine = new AMap.Polyline({ path: curvedPath, strokeColor: isNightMode ? "#4a5a6a" : "#dcdccb", strokeOpacity: 0.8, strokeWeight: 2, strokeStyle: "dashed", zIndex: 50 });
+      amapInstance.add(bgLine);
+
+      // 【应用你指定的纸飞机 SVG】
+      const headMarker = new AMap.Marker({
+        content: `<div class="head-icon-svg" id="moving-head">${customPaperPlaneSVG}</div>`,
+        offset: new AMap.Pixel(-16, -16), // 使飞机的视觉中心位于路线上
+        zIndex: 100
+      });
+      amapInstance.add(headMarker);
+
+      let index = 0;
+      let animId;
+      const moveIcon = () => {
+        if (index >= curvedPath.length - 1) index = 0; 
+        const currentP = curvedPath[index];
+        const nextP = curvedPath[index + 1];
+        
+        // 计算飞机应转动的角度
+        const angle = Math.atan2(nextP.getLat() - currentP.getLat(), nextP.getLng() - currentP.getLng()) * 180 / Math.PI;
+        // 你提供的纸飞机默认头部朝向右上角(大约-45度)，加上45度偏差以匹配它的飞行方向
+        const visualAngle = angle + 45; 
+
+        headMarker.setPosition(currentP);
+        const dom = document.getElementById('moving-head');
+        if (dom) dom.style.transform = `rotate(${visualAngle}deg)`;
+        
+        index += 2; // 控制飞行速度
+        animId = requestAnimationFrame(moveIcon);
+      };
+      moveIcon();
+
+      amapInstance.setFitView([bgLine], false, [80, 80, 80, 80]);
+      currentPolyline = { remove: () => { cancelAnimationFrame(animId); amapInstance.remove([bgLine, headMarker]); } };
+    }
+
+   // ===== 极致美化的漂流明信片生成系统 =====
+    function generatePostcard() {
+      if(!currentActiveBook) return alert('请先选择一本书');
+      
+      // 提示用户正在生成（因为需要几百毫秒下载二维码）
+      const btn = document.querySelector('.btn-postcard');
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 正在手绘明信片...';
+      btn.disabled = true;
+
+      const canvas = document.getElementById('postcardCanvas');
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width, h = canvas.height;
+
+      // 准备二维码图片 (跨域安全加载)
+      const qrImg = new Image();
+      qrImg.crossOrigin = "Anonymous";
+      // 生成指向你网站漂流页面的二维码
+      const targetUrl = encodeURIComponent('https://guanen.top/pages/book_crossing.html');
+      qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${targetUrl}&margin=0`;
+
+      qrImg.onload = () => {
+        // --- 1. 绘制复古纸质背景 ---
+        const grad = ctx.createLinearGradient(0, 0, w, h);
+        grad.addColorStop(0, '#Fdfbf7'); // 暖白纸色
+        grad.addColorStop(1, '#f0ede1'); // 略带岁月感的米色
+        ctx.fillStyle = grad; 
+        ctx.fillRect(0, 0, w, h);
+
+        // --- 2. 绘制双层优雅边框 ---
+        ctx.strokeStyle = '#d4a373';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(30, 30, w - 60, h - 60);
+        ctx.lineWidth = 1;
+        ctx.strokeRect(40, 40, w - 80, h - 80);
+
+        // --- 3. 绘制右上角复古红邮戳 ---
+        ctx.save();
+        ctx.translate(w - 120, 140);
+        ctx.rotate(-15 * Math.PI / 180); // 稍微倾斜更真实
+        ctx.strokeStyle = 'rgba(200, 50, 50, 0.6)'; // 褪色的印泥红
+        ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.arc(0, 0, 60, 0, Math.PI * 2); ctx.stroke();
+        ctx.beginPath(); ctx.arc(0, 0, 54, 0, Math.PI * 2); ctx.stroke();
+        ctx.fillStyle = 'rgba(200, 50, 50, 0.6)';
+        ctx.font = 'bold 16px "Source Han Serif SC", serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('冠恩书屋', 0, -20);
+        ctx.font = '14px Arial';
+        ctx.fillText('Drifting', 0, 5);
+        const today = new Date();
+        ctx.fillText(`${today.getFullYear()}.${today.getMonth()+1}.${today.getDate()}`, 0, 25);
+        ctx.restore();
+
+        // --- 4. 顶部标题区 ---
+        ctx.fillStyle = '#6b705c';
+        ctx.font = '24px "Source Han Serif SC", serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('—— 冠 恩 书 籍 漂 流 计 划 ——', w/2, 100);
+
+        ctx.font = 'bold 55px "Source Han Serif SC", "Noto Serif SC", serif';
+        ctx.fillStyle = '#222';
+        ctx.fillText(`《${currentActiveBook.title}》`, w/2, 200);
+
+        ctx.font = '30px "Source Han Serif SC", serif';
+        ctx.fillStyle = '#777';
+        ctx.fillText(`作者: ${currentActiveBook.author}`, w/2, 260);
+
+        // 分割线
+        ctx.beginPath(); ctx.moveTo(w/2 - 120, 310); ctx.lineTo(w/2 + 120, 310);
+        ctx.strokeStyle = 'rgba(107, 112, 92, 0.3)'; ctx.lineWidth = 2; ctx.stroke();
+
+        // --- 5. 核心寄语区 (大号引号修饰) ---
+        let lastNote = "“期待一场与你的文字相遇。”";
+        let lastReader = "第一位放流者";
+        if (currentHistoryData.length > 0 && currentHistoryData[currentHistoryData.length-1].note) {
+          lastNote = currentHistoryData[currentHistoryData.length-1].note;
+          lastReader = currentHistoryData[currentHistoryData.length-1].reader;
+        }
+
+        // 左上角巨大引号
+        ctx.font = '120px "Source Han Serif SC", serif';
+        ctx.fillStyle = 'rgba(212, 163, 115, 0.3)';
+        ctx.textAlign = 'left';
+        ctx.fillText('“', 80, 420);
+
+        // 正文自动换行排版
+        ctx.font = 'italic 36px "Source Han Serif SC", serif';
+        ctx.fillStyle = '#333';
+        ctx.textAlign = 'left';
+        const maxWidth = w - 180;
+        const lineHeight = 65;
+        let words = lastNote.split('');
+        let line = '';
+        let y = 430;
+
+        for(let n = 0; n < words.length; n++) {
+          let testLine = line + words[n];
+          let metrics = ctx.measureText(testLine);
+          if (metrics.width > maxWidth && n > 0) {
+            ctx.fillText(line, 90, y); line = words[n]; y += lineHeight;
+          } else line = testLine;
+        }
+        ctx.fillText(line, 90, y);
+
+        // 右下角巨大引号与落款
+        ctx.font = '120px "Source Han Serif SC", serif';
+        ctx.fillStyle = 'rgba(212, 163, 115, 0.3)';
+        ctx.fillText('”', w - 140, y + 60);
+
+        ctx.font = '26px "Source Han Serif SC", serif';
+        ctx.fillStyle = '#6b705c';
+        ctx.textAlign = 'right';
+        ctx.fillText(`—— 读者 ${lastReader}`, w - 100, y + 80);
+
+        // --- 6. 底部数据与二维码区 ---
+        const footerY = h - 240;
+        
+        // 绘制底部柔和背景框
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+        ctx.fillRect(40, footerY, w - 80, 200);
+
+        // 绘制漂流数据 (左侧)
+        ctx.textAlign = 'left';
+        ctx.fillStyle = '#444';
+        ctx.font = 'bold 28px sans-serif';
+        ctx.fillText(`本书已漂流 ${currentHistoryData.length} 个城市`, 70, footerY + 50);
+        
+        let cities = currentHistoryData.map(node => node.city).join(' → ');
+        if(cities.length > 20) cities = cities.substring(0, 18) + '...'; 
+        ctx.font = '24px sans-serif';
+        ctx.fillStyle = '#777';
+        ctx.fillText(`路线: ${cities || '刚刚启程'}`, 70, footerY + 100);
+        
+        ctx.fillStyle = '#a5a58d';
+        ctx.font = '20px Arial';
+        ctx.fillText('长按识别二维码，查看完整旅程', 70, footerY + 155);
+
+        // 绘制二维码 (右侧)
+        ctx.drawImage(qrImg, w - 210, footerY + 25, 150, 150);
+
+        // --- 7. 触发下载 ---
+        const link = document.createElement('a');
+        link.download = `漂流明信片-${currentActiveBook.title}.png`;
+        link.href = canvas.toDataURL('image/png'); 
+        link.click();
+
+        // 恢复按钮状态
+        btn.innerHTML = '<i class="fas fa-camera-retro"></i> 生成漂流明信片';
+        btn.disabled = false;
+      };
+
+      // 错误处理：如果二维码 API 超时
+      qrImg.onerror = () => {
+        alert('生成二维码超时，请稍后再试。');
+        btn.innerHTML = '<i class="fas fa-camera-retro"></i> 生成漂流明信片';
+        btn.disabled = false;
+      }
+    }
+    // ===== 表单提交逻辑 (更新状态) =====
+    document.getElementById('updateForm').onsubmit = async (e) => {
+      e.preventDefault();
+      const data = Object.fromEntries(new FormData(e.target).entries());
+      const geocoder = new AMap.Geocoder();
+      geocoder.getLocation(data.city, async (status, result) => {
+        if (status === 'complete' && result.geocodes.length) {
+          const loc = result.geocodes[0].location;
+          try {
+            const res = await fetch('../api/book_crossing_api.php?action=update_status', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({...data, book_id: data.bookId, lng: loc.lng, lat: loc.lat}) }).then(r => r.json());
+            if (res.success || res.status === 'success') { 
+              alert('更新成功！'); closeModal('updateModal'); e.target.reset(); 
+              fetchBooks(); 
+            } else alert('更新失败: ' + res.message);
+          } catch (err) { alert('更新出错'); }
+        } else alert('地址解析失败，请检查城市名称');
+      });
+    };
+
+    // 表单提交逻辑 (登记新书)
+    document.getElementById('registerForm').onsubmit = async (e) => {
+      e.preventDefault();
+      const data = Object.fromEntries(new FormData(e.target).entries());
+      const geocoder = new AMap.Geocoder();
+      geocoder.getLocation(data.city, async (status, result) => {
+        if (status === 'complete' && result.geocodes.length) {
+          const loc = result.geocodes[0].location;
+          try {
+            const res = await fetch('../api/book_crossing_api.php?action=register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({...data, lng: loc.lng, lat: loc.lat}) }).then(r => r.json());
+            if (res.success || res.status === 'success') { alert('放流成功！'); closeModal('registerModal'); e.target.reset(); fetchBooks(); } else alert('失败: ' + res.message);
+          } catch (err) { alert('提交出错'); }
+        } else alert('地址解析失败');
+      });
+    };
+
+    // 初始化
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        const splash = document.getElementById('splash-screen');
+        if(splash) {
+          splash.classList.add('fade-out');
+          setTimeout(() => splash.remove(), 1800);
+        }
+      }, 3000);
+      initVisitorTrace();
+    });
+
+    function waitForAMap() {
+      if (window.AMap && typeof window.AMap.Map === 'function') initMap();
+      else setTimeout(waitForAMap, 200);
+    }
+    waitForAMap();
+
+  </script>
+</body>
+</html>

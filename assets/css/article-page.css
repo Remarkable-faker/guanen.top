@@ -1,0 +1,419 @@
+/* 现代简约设计系统 - 温柔淡雅风格 */
+:root {
+  /* 调色盘 - 柔和自然色系 */
+  --bg-main: #fcfaf7;              /* 米白色背景 - 类似纸张 */
+  --bg-sidebar: rgba(255, 255, 255, 0.7); /* 半透明侧边栏 */
+  --primary-soft: #8ba8a0;         /* 灰绿色 - 主色调 */
+  --primary-deep: #5a7a72;         /* 深灰绿 */
+  --accent-soft: #d4a373;          /* 柔和金棕 - 强调色 */
+  --text-main: #3d405b;            /* 深蓝灰文本 */
+  --text-muted: #81b29a;           /* 辅助色 */
+  --text-light: #adb5bd;           /* 浅灰色文本 */
+  --border-color: rgba(0, 0, 0, 0.05);
+  --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.04);
+  --shadow-medium: 0 15px 40px rgba(0, 0, 0, 0.08);
+  
+  /* 间距与圆角 */
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  line-height: 1.8;
+  overflow-x: hidden;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 隐藏滚动条但保留功能 */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* 顶部导航栏优化 */
+header {
+  padding: 15px 40px;
+  background: var(--bg-sidebar);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border-color);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.logo-container img {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  object-fit: cover;
+  box-shadow: var(--shadow-soft);
+}
+
+.logo-container h1 {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-main);
+  letter-spacing: 1px;
+}
+
+.header-text {
+  flex: 1;
+  text-align: center;
+}
+
+.header-quote {
+  font-size: 15px;
+  color: var(--primary-soft);
+  font-style: italic;
+  font-weight: 400;
+}
+
+.sisyphus-svg {
+  opacity: 0.6;
+}
+
+/* 主容器布局 */
+.main-content {
+  flex: 1;
+  display: flex;
+  height: calc(100vh - 73px);
+  position: relative;
+}
+
+.container {
+  display: flex;
+  width: 100%;
+  height: 100%;
+}
+
+/* 侧边栏样式重构 */
+.sidebar {
+  width: 280px;
+  background: var(--bg-sidebar);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border-right: 1px solid var(--border-color);
+  padding: 30px 15px;
+  overflow-y: auto;
+  transition: var(--transition);
+  z-index: 90;
+}
+
+.sidebar-header {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-light);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 20px;
+  padding-left: 15px;
+}
+
+.sidebar ul {
+  list-style: none;
+}
+
+.sidebar li {
+  margin-bottom: 8px;
+}
+
+.li-main {
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: var(--transition);
+  background: transparent;
+}
+
+.li-main:hover {
+  background: rgba(255, 255, 255, 0.8);
+  transform: translateX(5px);
+}
+
+li.active > .li-main {
+  background: white;
+  box-shadow: var(--shadow-soft);
+  color: var(--primary-deep);
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(0,0,0,0.05);
+}
+
+.item-title {
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.item-subtitle {
+  font-size: 11px;
+  color: var(--text-light);
+  margin-top: 2px;
+}
+
+.arrow {
+  margin-left: auto;
+  width: 6px;
+  height: 6px;
+  border-right: 2px solid var(--text-light);
+  border-bottom: 2px solid var(--text-light);
+  transform: rotate(-45deg);
+  transition: var(--transition);
+}
+
+li.open > .li-main .arrow {
+  transform: rotate(45deg);
+}
+
+.child-list {
+  padding-left: 20px;
+  margin-top: 5px;
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+li.open > .child-list {
+  max-height: 2000px;
+}
+
+/* 内容区域优化 - 阅读体验核心 */
+.content {
+  flex: 1;
+  padding: 60px 0;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+  background: transparent;
+}
+
+.article-wrapper {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 40px;
+}
+
+.content h2 {
+  font-size: 32px;
+  font-weight: 600;
+  margin-bottom: 40px;
+  color: var(--text-main);
+  line-height: 1.3;
+  text-align: center;
+}
+
+.content p {
+  margin-bottom: 24px;
+  font-size: 17px;
+  color: var(--text-main);
+  opacity: 0.9;
+  text-align: justify;
+}
+
+/* 章节导航 - 优雅的浮动设计 */
+.chapter-sidebar {
+  width: 260px;
+  padding: 30px 20px;
+  background: transparent;
+  border-left: 1px solid var(--border-color);
+  overflow-y: auto;
+  transition: var(--transition);
+}
+
+.chapter-header {
+  margin-bottom: 25px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.chapter-header h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-light);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+}
+
+.chapter-item {
+  padding: 10px 15px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 5px;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.chapter-item:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.chapter-item.active {
+  background: white;
+  box-shadow: var(--shadow-soft);
+}
+
+.chapter-number {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--primary-soft);
+  min-width: 20px;
+}
+
+.chapter-title {
+  font-size: 14px;
+  color: var(--text-main);
+}
+
+/* 移动端菜单按钮 - 现代化悬浮设计 */
+.mobile-menu-button {
+  display: none;
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--primary-soft);
+  color: white;
+  border: none;
+  box-shadow: 0 10px 25px rgba(139, 168, 160, 0.4);
+  z-index: 1001;
+  cursor: pointer;
+  justify-content: center;
+  align-items: center;
+  transition: var(--transition);
+}
+
+.mobile-menu-button:active {
+  transform: scale(0.9);
+}
+
+.mobile-menu-button svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* 响应式适配 */
+@media (max-width: 1024px) {
+  .chapter-sidebar {
+    display: none; /* 平板端暂时隐藏右侧章节，可通过内容区按钮呼出 */
+  }
+}
+
+@media (max-width: 768px) {
+  header {
+    padding: 15px 20px;
+  }
+  
+  .header-quote, .sisyphus-svg {
+    display: none;
+  }
+  
+  .sidebar {
+    position: fixed;
+    left: -100%;
+    top: 0;
+    height: 100vh;
+    width: 80%;
+    max-width: 300px;
+    box-shadow: var(--shadow-medium);
+  }
+  
+  .sidebar.mobile-open {
+    left: 0;
+  }
+  
+  .content {
+    padding: 40px 0;
+  }
+  
+  .article-wrapper {
+    padding: 0 25px;
+  }
+  
+  .content h2 {
+    font-size: 26px;
+    margin-bottom: 30px;
+  }
+  
+  .mobile-menu-button {
+    display: flex;
+  }
+  
+  /* 移动端章节导航改为底部抽屉或点击呼出，这里先简单隐藏 */
+  .chapter-sidebar {
+    display: none;
+  }
+}
+
+/* 动画效果 */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.content.fade-in {
+  animation: fadeIn 0.6s ease forwards;
+}
+
+/* 特殊排版组件 */
+.quote {
+  background: rgba(212, 163, 115, 0.05);
+  border-left: 3px solid var(--accent-soft);
+  padding: 20px 30px;
+  margin: 40px 0;
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+}
+
+.quote p {
+  font-style: italic;
+  margin-bottom: 0;
+  color: var(--accent-soft);
+}

@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>加入书籍漂流 · 冠恩书屋</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: "Source Han Serif SC", "Noto Serif SC", "Songti SC", serif;
+            background: #f5f4f2;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .register-container {
+            background: #fff;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            width: 100%;
+            max-width: 500px;
+        }
+        .header { text-align: center; margin-bottom: 30px; }
+        .header h1 { font-size: 24px; color: #6b705c; margin-bottom: 8px; }
+        .header p { font-size: 14px; color: #999; }
+        
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-size: 14px; color: #555; font-weight: 600; }
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+        .form-group input:focus { outline: none; border-color: #6b705c; }
+        
+        .agreement-box {
+            margin-top: 25px;
+            padding-top: 15px;
+            border-top: 1px dashed #eee;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            font-size: 13px;
+            color: #666;
+        }
+        .agreement-box input[type="checkbox"] { margin-top: 3px; cursor: pointer; }
+        .agreement-box a { color: #6b705c; text-decoration: none; font-weight: bold; }
+        .agreement-box a:hover { text-decoration: underline; }
+
+        .btn-register {
+            width: 100%;
+            padding: 14px;
+            background: #6b705c;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 25px;
+            transition: background 0.3s;
+        }
+        .btn-register:hover { background: #a5a58d; }
+        .btn-register:disabled { background: #ccc; cursor: not-allowed; }
+
+        .footer-links { text-align: center; margin-top: 20px; font-size: 14px; }
+        .footer-links a { color: #6b705c; text-decoration: none; }
+        
+        /* 响应式 */
+        @media (max-width: 480px) {
+            .register-container { padding: 25px; }
+        }
+    </style>
+</head>
+<body>
+    <a href="../index.php" style="position: fixed; top: 20px; left: 20px; z-index: 1000; text-decoration: none; color: #6b705c; font-size: 24px; background: white; width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: 1px solid rgba(107, 112, 92, 0.2);" title="返回首页">
+        🏠
+    </a>
+    <div class="register-container">
+        <div class="header">
+            <h1 onclick="fillTestData()" style="cursor: pointer;">开启漂流之旅</h1>
+            <p>填写实名信息，加入书籍漂流社区</p>
+        </div>
+
+        <div id="registerForm">
+            <div class="form-group">
+                <label>1. 昵称 (展示用)*</label>
+                <input type="text" id="nickname" placeholder="请输入您希望被其他书友称呼的昵称（如：冠恩先生）">
+            </div>
+            <div class="form-group">
+                <label>2. 真实姓名*</label>
+                <input type="text" id="real_name" placeholder="仅供实名备案使用">
+            </div>
+            <div class="form-group">
+                <label>3. 身份证号*</label>
+                <input type="text" id="id_card" placeholder="18位身份证号码，本站将严格遵守用户信息保密原则">
+            </div>
+            <div class="form-group">
+                <label>4. 手机号*</label>
+                <input type="text" id="phone" placeholder="用于接收漂流通知">
+            </div>
+            <div class="form-group">
+                <label>5. 电子邮箱</label>
+                <input type="email" id="email" placeholder="example@mail.com">
+            </div>
+            <div class="form-group">
+                <label>6. 收货地址 (用于寄送书籍手帐)*</label>
+                <input type="text" id="address" placeholder="请输入详细的收货地址，包括省市区、街道、门牌号">
+            </div>
+            <div class="form-group">
+                <label>7. 设置密码*</label>
+                <input type="password" id="password" placeholder="不少于6位字符">
+            </div>
+            <div class="form-group">
+                <label>8. 确认密码*</label>
+                <input type="password" id="confirm_password" placeholder="请再次输入密码">
+            </div>
+
+            <div class="agreement-box">
+                <input type="checkbox" id="agreeCheckbox">
+                <label for="agreeCheckbox">
+                    我已阅读并同意 <a href="bc_agreement.html" target="_blank">《用户漂流规则须知》</a>、<a href="bc_borrow_agreement.html" target="_blank">《借阅与保管协议》</a> 与 <a href="bc_penalties.html" target="_blank">《违规行为处罚细则》</a>
+                </label>
+            </div>
+
+            <div class="agreement-box" style="margin-top: 10px;">
+                <input type="checkbox" id="libraryAgreeCheckbox">
+                <label for="libraryAgreeCheckbox">
+                    我已支付报名费，并同意 <a href="bc_library_rules.html" target="_blank">《“书库”并行活动参与总则》</a>，郑重承诺：我将以诚信为本，严格遵守全部规则，爱护书籍，按时传递，共同维护这个宝贵的阅读社群。
+                </label>
+            </div>
+
+            <button class="btn-register" id="submitBtn" onclick="handleRegister()">立即注册并加入</button>
+        </div>
+
+        <div class="footer-links">
+            已有账号？<a href="book_crossing.html">返回登录</a>
+        </div>
+    </div>
+
+    <script>
+        // 一键填入测试数据 (方便开发测试)
+        function fillTestData() {
+            const randomSuffix = Math.floor(Math.random() * 1000);
+            document.getElementById('nickname').value = '测试书友' + randomSuffix;
+            document.getElementById('real_name').value = '张三';
+            document.getElementById('id_card').value = '110101199001010015'; // 符合校验规则的虚拟身份证
+            document.getElementById('phone').value = '138' + Math.random().toString().slice(2, 10);
+            document.getElementById('email').value = 'test' + randomSuffix + '@example.com';
+            document.getElementById('password').value = 'abc123456';
+            document.getElementById('confirm_password').value = 'abc123456';
+            document.getElementById('agreeCheckbox').checked = true;
+            document.getElementById('libraryAgreeCheckbox').checked = true;
+            console.log('测试数据已填入');
+        }
+
+        // 验证中国大陆手机号
+        function validatePhone(phone) {
+            const phoneReg = /^1[3-9]\d{9}$/;
+            return phoneReg.test(phone);
+        }
+
+        // 验证 18 位身份证号 (含校验码逻辑)
+        function validateIDCard(id) {
+            const reg = /^[1-9]\d{5}(18|19|20)\d{2}((0[1-9])|(1[0-2]))(([0-2][1-9])|10|20|30|31)\d{3}[0-9Xx]$/;
+            if (!reg.test(id)) return false;
+            
+            // 进一步校验校验码
+            const weight = [7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2];
+            const validate = ['1', '0', 'X', '9', '8', '7', '6', '5', '4', '3', '2'];
+            let sum = 0;
+            for (let i = 0; i < 17; i++) {
+                sum += id[i] * weight[i];
+            }
+            const last = validate[sum % 11];
+            return last === id[17].toUpperCase();
+        }
+
+        // 检查输入是否过于简单 (如 123456, 111111)
+        function isTooSimple(str) {
+            if (str.length < 6) return true;
+            // 检查是否全为同一字符
+            if (/^(.)\1+$/.test(str)) return true;
+            // 检查是否为连续数字
+            const sequential = "01234567890 9876543210";
+            if (sequential.indexOf(str) !== -1) return true;
+            return false;
+        }
+
+        async function handleRegister() {
+            const agree = document.getElementById('agreeCheckbox').checked;
+            const libraryAgree = document.getElementById('libraryAgreeCheckbox').checked;
+            
+            if (!agree) {
+                return alert('请先阅读并勾选同意《用户漂流规则须知》等基础协议');
+            }
+            if (!libraryAgree) {
+                return alert('请先阅读并勾选同意《“书库”并行活动参与总则》并确认您的承诺');
+            }
+
+            const data = {
+                nickname: document.getElementById('nickname').value.trim(),
+                real_name: document.getElementById('real_name').value.trim(),
+                id_card: document.getElementById('id_card').value.trim(),
+                phone: document.getElementById('phone').value.trim(),
+                email: document.getElementById('email').value.trim(),
+                address: document.getElementById('address').value.trim(),
+                password: document.getElementById('password').value,
+                confirm_password: document.getElementById('confirm_password').value,
+                username: document.getElementById('phone').value.trim() 
+            };
+
+            // 基础非空校验
+            if (!data.nickname || !data.real_name || !data.id_card || !data.phone || !data.address || !data.password) {
+                return alert('请填写所有带 * 的必填项');
+            }
+
+            // 手机号有效性校验
+            if (!validatePhone(data.phone)) {
+                return alert('请输入有效的中国大陆手机号');
+            }
+
+            // 身份证号有效性校验
+            if (!validateIDCard(data.id_card)) {
+                return alert('请输入有效的18位身份证号码');
+            }
+
+            // 防简单信息校验
+            if (isTooSimple(data.nickname)) {
+                return alert('昵称太简单啦，换个更有个性的吧！');
+            }
+            if (isTooSimple(data.password)) {
+                return alert('密码过于简单 (不能全重复或连续数字)，请设置更复杂的密码以保障安全');
+            }
+
+            if (data.password !== data.confirm_password) {
+                return alert('两次输入的密码不一致');
+            }
+
+            if (data.password.length < 6) {
+                return alert('密码长度至少需要6位');
+            }
+
+            // 验证通过，暂存数据并跳转到答题页面
+            sessionStorage.setItem('pending_registration_data', JSON.stringify(data));
+            window.location.href = 'bc_quiz.html';
+        }
+    </script>
+</body>
+</html>

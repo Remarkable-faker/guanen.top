@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>冠恩书屋 AI 书童</title>
+<style>
+    :root {
+        --text-color: #334155;
+        --primary-color: #0f172a;
+        --primary-hover: #1e293b;
+        --glass-bg: rgba(255, 255, 255, 0.85);
+        --glass-border: rgba(0, 0, 0, 0.08);
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: "PingFang SC", "Microsoft YaHei", "Songti SC", "STSong", "Serif";
+        /* 保留原有的温润流沙渐变背景，与内部极简白形成对比 */
+        background: linear-gradient(135deg, #f7d9c4, #f3c6c6, #f6e2b3, #f2d7e8, #fdebd0);
+        background-size: 400% 400%;
+        animation: gradientFlow 18s ease infinite;
+        color: var(--text-color);
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        overflow: hidden;
+    }
+
+    @keyframes gradientFlow {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+
+    /* 聊天主面板：极简通透白质感 */
+    .chat-container {
+        width: 95%;
+        max-width: 900px; /* 加宽面板，提升阅读体验 */
+        height: 85vh;
+        background: var(--glass-bg);
+        backdrop-filter: blur(24px) saturate(150%);
+        -webkit-backdrop-filter: blur(24px) saturate(150%);
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08);
+        border-radius: 20px;
+        border: 1px solid var(--glass-border);
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        position: relative;
+    }
+
+    /* --- 欢迎引导页样式优化 --- */
+    .center-input-container {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 10;
+        background: transparent;
+        transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .center-input-container.hidden {
+        opacity: 0;
+        transform: translateY(-50px) scale(0.95);
+        pointer-events: none;
+    }
+
+    .center-title {
+        font-size: 2.5rem;
+        font-weight: 600;
+        color: #1e293b;
+        margin-bottom: 16px;
+        text-align: center;
+        letter-spacing: 0.1em;
+    }
+
+    .center-message {
+        font-size: 1.1rem;
+        color: #64748b;
+        margin-bottom: 40px;
+        text-align: center;
+        max-width: 70%;
+        line-height: 1.6;
+    }
+
+    /* 居中搜索框：苹果风高级阴影 */
+    .ai-chat-input-wrapper {
+        position: relative;
+        width: 100%;
+        max-width: 600px;
+        margin-top: 20px;
+    }
+
+    .ai-chat-input {
+        width: 100%;
+        border-radius: 32px;
+        background: #ffffff;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+        border: 1px solid rgba(0,0,0,0.04);
+        overflow: hidden;
+    }
+
+    .ai-chat-input.expanded {
+        height: 128px;
+        box-shadow: 0 8px 32px 0 rgba(0,0,0,0.12);
+    }
+
+    .ai-chat-input.collapsed {
+        height: 68px;
+    }
+
+    .input-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px;
+        background: #fff;
+    }
+
+    .input-btn {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s ease;
+        color: #64748b;
+    }
+
+    .input-btn:hover { background: #f1f5f9; color: #1e293b; }
+
+    .input-btn.primary { background: #0f172a; color: #fff; }
+    .input-btn.primary:hover { background: #1e293b; transform: scale(1.05); }
+
+    .input-field-container {
+        position: relative;
+        flex: 1;
+        height: 44px;
+    }
+
+    .input-field {
+        width: 100%;
+        height: 100%;
+        border: none;
+        outline: none;
+        padding: 8px 12px;
+        font-size: 15px;
+        color: #334155;
+        background: transparent;
+        position: relative;
+        z-index: 1;
+    }
+
+    .placeholder-container {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        display: flex;
+        align-items: center;
+        padding: 8px 12px;
+        z-index: 0;
+    }
+
+    .placeholder-text {
+        color: #94a3b8;
+        font-size: 15px;
+        white-space: nowrap;
+        overflow: hidden;
+    }
+
+    .placeholder-char {
+        display: inline-block;
+        opacity: 0;
+        filter: blur(12px);
+        transform: translateY(10px);
+    }
+
+    .placeholder-char.animate {
+        opacity: 1;
+        filter: blur(0px);
+        transform: translateY(0);
+        transition: opacity 0.25s, filter 0.4s, transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .placeholder-char.exit {
+        opacity: 0;
+        filter: blur(12px);
+        transform: translateY(-10px);
+        transition: opacity 0.2s, filter 0.3s, transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .controls-container {
+        display: flex;
+        justify-content: center;
+        padding: 0 16px;
+        gap: 12px;
+        font-size: 14px;
+        margin-top: 8px;
+    }
+
+    .controls-container.hidden { opacity: 0; transform: translateY(20px); pointer-events: none; }
+    .controls-container.visible { opacity: 1; transform: translateY(0); }
+
+    .control-btn {
+        padding: 8px 16px;
+        border-radius: 20px;
+        border: none;
+        cursor: pointer;
+        font-weight: 500;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+        background: #f1f5f9;
+        color: #64748b;
+    }
+
+    .control-btn:hover { background: #e2e8f0; color: #1e293b; }
+    .control-btn svg { width: 18px; height: 18px; }
+
+    .center-send-btn {
+        margin-top: 30px;
+        padding: 12px 40px;
+        font-size: 16px;
+        border-radius: 20px;
+        border: 1px solid rgba(0,0,0,0.1);
+        background: #ffffff;
+        color: #334155;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .center-send-btn:hover { background: #f8fafc; transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08); }
+
+    /* --- 内部对话区样式优化 --- */
+    .chat-content {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.5s ease;
+        background: rgba(248, 250, 252, 0.5); /* 极浅灰底，衬托纯白气泡 */
+    }
+
+    .chat-content.visible { opacity: 1; visibility: visible; }
+
+    h1.chat-top-title {
+        text-align: center;
+        font-weight: 500;
+        color: #1e293b;
+        font-size: 20px;
+        letter-spacing: 0.05em;
+        padding: 20px 20px 15px;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+        margin: 0;
+        background: transparent;
+    }
+
+    .messages {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+        padding: 30px 25px;
+        overflow-y: auto;
+        scroll-behavior: smooth;
+        flex: 1;
+    }
+
+    /* 滚动条极简处理 */
+    .messages::-webkit-scrollbar { width: 6px; }
+    .messages::-webkit-scrollbar-track { background: transparent; }
+    .messages::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
+    .messages::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.2); }
+
+    .message {
+        line-height: 1.7;
+        padding: 14px 20px;
+        max-width: 85%;
+        word-break: break-word;
+        position: relative;
+        font-size: 14px; /* 字体精简，现代感更强 */
+        transition: all 0.3s ease;
+        letter-spacing: 0.02em;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+    }
+
+    .message:hover { transform: translateY(-1px); }
+
+    /* AI消息气泡：纯白底 + 细边框 */
+    .message.ai {
+        align-self: flex-start;
+        background: #ffffff;
+        color: #334155;
+        border: 1px solid rgba(0, 0, 0, 0.04);
+        border-radius: 4px 16px 16px 16px;
+    }
+
+    /* 用户消息气泡：高级深岩灰/黑色 */
+    .message.user {
+        align-self: flex-end;
+        background: #1e293b;
+        color: #ffffff;
+        border: none;
+        border-radius: 16px 4px 16px 16px;
+        box-shadow: 0 4px 15px rgba(30, 41, 59, 0.15);
+    }
+
+    /* 去除略显繁琐的Emoji前缀，让排版更干净 */
+    .message.ai::before, .message.user::before { content: none; }
+
+    /* 底部输入框极简风 */
+    .input-area {
+        display: flex;
+        gap: 12px;
+        padding: 20px 25px;
+        border-top: 1px solid rgba(0, 0, 0, 0.06);
+        flex-shrink: 0;
+        background: transparent;
+    }
+
+    .input-area input {
+        flex: 1;
+        padding: 14px 20px;
+        border-radius: 12px;
+        border: 1px solid transparent;
+        font-size: 14px;
+        background: #f1f5f9;
+        color: #334155;
+        transition: all 0.3s ease;
+    }
+
+    .input-area input:focus {
+        outline: none;
+        background: #ffffff;
+        border-color: #cbd5e1;
+        box-shadow: 0 0 0 3px rgba(203, 213, 225, 0.3);
+    }
+
+    .input-area input::placeholder { color: #94a3b8; }
+
+    .input-area button {
+        padding: 14px 28px;
+        border-radius: 12px;
+        border: none;
+        background: #0f172a;
+        color: #fff;
+        cursor: pointer;
+        font-size: 15px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .input-area button:hover { background: #1e293b; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2); }
+    .input-area button:active { transform: scale(0.98); }
+
+    /* 思考动画样式 */
+    .loading {
+        display: inline-block;
+        color: #64748b;
+        font-size: 14px;
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding-left: 0;
+    }
+
+    .loading::after {
+        content: '';
+        display: inline-block;
+        width: 6px;
+        height: 6px;
+        margin-left: 8px;
+        border-radius: 50%;
+        background: #94a3b8;
+        animation: blink 1.2s infinite alternate;
+    }
+
+    @keyframes blink {
+        0% { opacity: 0.2; transform: scale(0.8);}
+        50% { opacity: 1; transform: scale(1.2);}
+        100% { opacity: 0.2; transform: scale(0.8);}
+    }
+
+    @media (max-width: 768px) {
+        .chat-container { width: 100%; height: 100vh; border-radius: 0; }
+        .center-title { font-size: 2rem; }
+        .message { font-size: 15px; max-width: 90%; }
+        .input-area { padding: 15px; }
+    }
+</style>
+</head>
+<body>
+<div class="chat-container">
+    <div class="center-input-container" id="centerInputContainer">
+        <h1 class="center-title">冠恩书屋·雅言</h1>
+        <p class="center-message">愿与君共品茶香墨韵，畅谈古今中外</p>
+        <div class="ai-chat-input-wrapper">
+            <div class="ai-chat-input collapsed">
+                <div class="input-row">
+                    <button class="input-btn" type="button" title="Attach file">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                        </svg>
+                    </button>
+                    <div class="input-field-container">
+                        <input type="text" class="input-field" placeholder="" />
+                        <div class="placeholder-container"></div>
+                    </div>
+                    <button class="input-btn" type="button" title="Voice input">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                        </svg>
+                    </button>
+                    <button class="input-btn primary send-btn" type="button" title="Send">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="controls-container hidden">
+                    <button class="control-btn think-btn" type="button" title="Think">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                        </svg>
+                        深度思考
+                    </button>
+                    <button class="control-btn deep-search-btn" type="button" title="Deep Search">
+                        <div>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                            </svg>
+                        </div>
+                        <span class="deep-search-text">全网检索</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <button id="centerSendBtn" class="center-send-btn">开启雅集</button>
+    </div>
+    
+    <div class="chat-content" id="chatContent">
+        <h1 class="chat-top-title">冠恩书屋·雅言问答</h1>
+        <div class="messages" id="messages"></div>
+        <div class="input-area">
+            <input type="text" id="userInput" placeholder="请书友输入您的疑问..." />
+            <button id="sendBtn">发送</button>
+        </div>
+    </div>
+</div>
+<script>
+const messagesEl = document.getElementById('messages');
+const userInput = document.getElementById('userInput'); // 底部对话框
+const sendBtn = document.getElementById('sendBtn'); // 底部发送按钮
+const inputField = document.querySelector('.input-field'); // 欢迎页中心输入框
+
+// ==========================================
+// 核心配置：切换回 DeepSeek API 引擎
+// ==========================================
+const AI_CONFIG = {
+    apiKey: 'sk-2bb8353167484089b6be9e3e62a4e3b6', // 您的 DeepSeek 密钥
+    apiUrl: 'https://api.deepseek.com/v1/chat/completions',
+    model: 'deepseek-chat',
+    systemPrompt: `你是冠恩书屋的 AI 助手，名叫"雅言"。你博学多才，回答问题时专业、友好、易懂。语言风格现代自然，既有深度又不会太学术化，像一位知识渊博的朋友在和你聊天。
+
+【专属知识库：关于本站的主理人】
+当用户问及“冠恩”、“冠恩先生”、“冠恩超人”、“卢鸿凯”是谁，或者问及本站站长是干什么的，请严格基于以下事实向用户介绍，注意要用你“雅言”温润自然的语气去总结和诉说，不要像机器一样生硬地全文背诵：
+
+冠恩（真名：卢鸿凯，Lu Hongkai），别名冠恩先生、冠恩超人、Guanen。他是一位来自中国的独立开发者、内容创作者与社会公益发起人。他以“理性代码，感性生活”为信条，通过在技术、文学与公益领域的跨界实践，构建了一个独特的个人品牌。在数字化浪潮中，他致力于探索技术工具与人文精神相结合的另一种可能性。
+
+核心身份与贡献：
+1. 独立开发者：全栈工程师，独立开发并运营个人网站 guanen.top。这是他的技术作品集和精神世界的数字基石（数字花园），提供技术共享并倡导“善良、正直、冷静与耐心”的处世原则。
+2. 自媒体创作者：以“冠恩书屋”为品牌在抖音等平台活动，主打深度文学随笔，将晦涩文学理论浓缩于精致画面，为快节奏生活中的人提供精神栖息地。
+3. 社会公益发起人：国内“全国书籍手帐漂流活动”的开创者。号召通过实体书籍和手帐本进行物理传递，重塑陌生人之间基于深度阅读和手写温度的链接，对抗数字时代的虚拟与疏离感。
+
+人物画像：
+他是数字时代坚守人文理想主义的“践行者”。用技术搭建骨架，用文化填充血肉，用公益连接社会。他证明了在这个时代，一个人可以同时是理性的程序员、感性的写作者和热忱的行动派。他的存在，为互联网世界提供了一种“温柔而坚定”的范式。`
+};
+
+const AI_THINKING_QUOTES = [
+    '容我稍待，翻阅典籍...',
+    '正在研墨备纸...',
+    '且让我细细思量...',
+    '翻遍藏书，寻此佳句...',
+    '静心思索，酝酿文思...',
+    '笔走龙蛇，思接千载...'
+];
+
+function appendMessage(text, sender='ai') {
+    const msg = document.createElement('div');
+    msg.className = 'message ' + sender;
+    msg.innerHTML = text.replace(/\n/g, '<br>');
+    messagesEl.appendChild(msg);
+    requestAnimationFrame(() => {
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+    });
+}
+
+// ==========================================
+// DeepSeek 接口请求逻辑
+// ==========================================
+async function getAIResponse(userText) {
+    const loadingMsg = document.createElement('div');
+    loadingMsg.className = 'message ai loading';
+    messagesEl.appendChild(loadingMsg);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+
+    const randomQuote = AI_THINKING_QUOTES[Math.floor(Math.random() * AI_THINKING_QUOTES.length)];
+    loadingMsg.innerHTML = `<span class="loading-text">${randomQuote}</span>`;
+
+    try {
+        const response = await fetch(AI_CONFIG.apiUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${AI_CONFIG.apiKey}`
+            },
+            body: JSON.stringify({
+                model: AI_CONFIG.model,
+                messages: [
+                    { role: 'system', content: AI_CONFIG.systemPrompt },
+                    { role: 'user', content: userText }
+                ],
+                temperature: 0.7
+            })
+        });
+        const data = await response.json();
+        
+        let answer = "";
+        // 解析 DeepSeek 标准的 OpenAI 格式返回值
+        if (data.choices && data.choices.length > 0) {
+            answer = data.choices[0].message.content;
+        } else {
+            console.error("API 异常响应:", data);
+            answer = "小生才疏学浅，尚未在馆内寻得此解，容我往藏经阁深处再探。";
+        }
+
+        if(userText.includes('迷茫')) {
+            answer += '\n\n愿与君共勉：若心感迷茫，春风拂柳时，不妨翻阅《唐诗三百首》，自会有一丝清朗之意。';
+        }
+        
+        await saveChatRecord(userText, answer);
+        return answer;
+    } catch(e) {
+        console.error('AI 响应错误:', e);
+        return `网络似乎断了线，未能收到您的传书。\n（错误信息：${e.message}）`;
+    } finally {
+        loadingMsg.remove();
+    }
+}
+
+async function saveChatRecord(userMessage, aiResponse) {
+    try {
+        const response = await fetch('/api/chat_api.php?action=save_ai_chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                user_message: userMessage,
+                ai_response: aiResponse,
+                model_used: AI_CONFIG.model,
+                temperature: 0.7
+            })
+        });
+    } catch (error) {
+        console.error('保存聊天记录异常:', error);
+    }
+}
+
+// ==========================================
+// 底部输入框发送事件
+// ==========================================
+sendBtn.addEventListener('click', async () => {
+    const text = userInput.value.trim();
+    if(!text) return;
+    appendMessage(text, 'user');
+    userInput.value = '';
+    const reply = await getAIResponse(text);
+    appendMessage(reply, 'ai');
+});
+
+userInput.addEventListener('keypress', async (e) => {
+    if(e.key === 'Enter') sendBtn.click();
+});
+
+// ==========================================
+// 欢迎界面与过渡逻辑 
+// ==========================================
+const centerInputContainer = document.getElementById('centerInputContainer');
+const centerSendBtn = document.getElementById('centerSendBtn');
+const chatContent = document.getElementById('chatContent');
+
+async function startChat() {
+    const text = inputField.value.trim();
+    
+    centerInputContainer.classList.add('hidden');
+    
+    setTimeout(() => {
+        centerInputContainer.style.display = 'none';
+        chatContent.classList.add('visible');
+        
+        setTimeout(() => {
+            userInput.focus();
+            
+            if (text) {
+                appendMessage(text, 'user');
+                inputField.value = ''; 
+                messagesEl.scrollTop = messagesEl.scrollHeight;
+                
+                getAIResponse(text).then(reply => {
+                    appendMessage(reply, 'ai');
+                });
+            }
+        }, 100);
+    }, 600);
+}
+
+// 绑定相关点击事件
+centerSendBtn.addEventListener('click', startChat);
+
+const welcomeSendIcon = document.querySelector('.send-btn');
+if (welcomeSendIcon) {
+    welcomeSendIcon.addEventListener('click', startChat);
+}
+
+inputField.addEventListener('keypress', async (e) => {
+    if(e.key === 'Enter') {
+        e.preventDefault();
+        startChat();
+    }
+});
+
+// ==========================================
+// 初始化检查登录
+// ==========================================
+async function checkLoginStatus() {
+    try {
+        const response = await fetch('/api/chat_api.php?action=init');
+        const data = await response.json();
+        if (!data.success || !data.data.is_logged_in) {
+            // 本地测试时保持注释
+            // alert('请先登录后再使用 AI 聊天功能');
+            // window.location.href = '/user/user_login.php';
+        }
+    } catch (error) {
+        console.log('本地测试跳过登录');
+    }
+}
+checkLoginStatus();
+
+// ==========================================
+// 中文书香气占位符动画逻辑
+// ==========================================
+const aiChatInputWrapper = document.querySelector('.ai-chat-input-wrapper');
+const aiChatInput = document.querySelector('.ai-chat-input');
+const placeholderContainer = document.querySelector('.placeholder-container');
+const thinkBtn = document.querySelector('.think-btn');
+const deepSearchBtn = document.querySelector('.deep-search-btn');
+
+const PLACEHOLDERS = [
+    "书屋之中，可有藏经？",
+    "秋葵积分该如何获取？",
+    "给我讲一段古人的故事",
+    "帮我写一首关于春天的诗",
+    "什么是手账漂流？",
+    "如何提升网站在百度的收录？"
+];
+
+let placeholderIndex = 0;
+let showPlaceholder = true;
+let isActive = false;
+let placeholderInterval = null;
+
+function animatePlaceholderChars(chars, isExit = false) {
+    const container = document.createElement('div');
+    container.className = 'placeholder-text';
+    chars.forEach((char, i) => {
+        const span = document.createElement('span');
+        span.className = `placeholder-char ${isExit ? 'exit' : 'animate'}`;
+        span.textContent = char === ' ' ? '\u00A0' : char;
+        span.style.transitionDelay = `${i * 0.025}s`;
+        container.appendChild(span);
+    });
+    return container;
+}
+
+function cyclePlaceholder() {
+    if (isActive || inputField.value) return;
+    showPlaceholder = false;
+    setTimeout(() => {
+        placeholderIndex = (placeholderIndex + 1) % PLACEHOLDERS.length;
+        showPlaceholder = true;
+        renderPlaceholder();
+    }, 400);
+}
+
+function renderPlaceholder() {
+    if (!showPlaceholder || isActive || inputField.value) {
+        placeholderContainer.innerHTML = '';
+        return;
+    }
+    const chars = PLACEHOLDERS[placeholderIndex].split('');
+    placeholderContainer.innerHTML = '';
+    placeholderContainer.appendChild(animatePlaceholderChars(chars));
+}
+
+function activateInput() {
+    isActive = true;
+    aiChatInput.classList.remove('collapsed');
+    aiChatInput.classList.add('expanded');
+    const controlsContainer = document.querySelector('.controls-container');
+    if (controlsContainer) {
+        controlsContainer.classList.remove('hidden');
+        controlsContainer.classList.add('visible');
+    }
+    if (placeholderInterval) {
+        clearInterval(placeholderInterval);
+        placeholderInterval = null;
+    }
+}
+
+function deactivateInput() {
+    if (!inputField.value) {
+        isActive = false;
+        aiChatInput.classList.remove('expanded');
+        aiChatInput.classList.add('collapsed');
+        const controlsContainer = document.querySelector('.controls-container');
+        if (controlsContainer) {
+            controlsContainer.classList.remove('visible');
+            controlsContainer.classList.add('hidden');
+        }
+        if (!placeholderInterval) {
+            placeholderInterval = setInterval(cyclePlaceholder, 3000);
+            cyclePlaceholder();
+        }
+    }
+}
+
+document.addEventListener('mousedown', (e) => {
+    if (aiChatInputWrapper && !aiChatInputWrapper.contains(e.target)) {
+        if (!inputField.value) deactivateInput();
+    }
+});
+
+placeholderInterval = setInterval(cyclePlaceholder, 3000);
+renderPlaceholder();
+
+inputField.addEventListener('focus', activateInput);
+inputField.addEventListener('blur', deactivateInput);
+inputField.addEventListener('input', renderPlaceholder);
+
+thinkBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    thinkBtn.classList.toggle('active');
+});
+
+deepSearchBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    deepSearchBtn.classList.toggle('expanded');
+    deepSearchBtn.classList.toggle('active');
+    document.querySelector('.deep-search-text').classList.toggle('hidden');
+});
+</script>
+
+</body>
+</html>

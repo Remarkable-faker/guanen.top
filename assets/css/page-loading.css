@@ -1,0 +1,217 @@
+/* 页面跳转加载动画样式 */
+
+/* 加载动画遮罩层 */
+#page-loading-container {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    z-index: 10000;
+    font-family: 'Microsoft YaHei', sans-serif;
+}
+
+.page-loading-overlay {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+
+.page-loading-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 30px;
+    text-align: center;
+    max-width: 400px;
+    padding: 40px;
+}
+
+/* 加载文字容器 */
+.loading-text-container {
+    margin-bottom: 20px;
+}
+
+.loading-text {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #333;
+    position: relative;
+    display: inline-block;
+}
+
+/* 文字闪烁动画 */
+.text-shimmer {
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        transparent 40%,
+        #000 50%,
+        transparent 60%,
+        transparent 100%
+    );
+    background-size: 250% 100%;
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    animation: shimmer 2s linear infinite;
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: 100% center;
+    }
+    100% {
+        background-position: 0% center;
+    }
+}
+
+/* 加载进度条 */
+.loading-progress-container {
+    width: 300px;
+    height: 4px;
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 2px;
+    overflow: hidden;
+    margin: 20px 0;
+}
+
+.loading-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #0078ff, #00d4ff, #0078ff);
+    background-size: 200% 100%;
+    border-radius: 2px;
+    width: 0%;
+    transition: width 1.8s ease-in-out;
+    animation: progressShine 2s ease-in-out infinite;
+}
+
+@keyframes progressShine {
+    0% {
+        background-position: 0% center;
+    }
+    100% {
+        background-position: 200% center;
+    }
+}
+
+/* 加载图标 */
+.loading-icon {
+    margin: 20px 0;
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(0, 120, 255, 0.3);
+    border-top: 3px solid #0078ff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* 跳过按钮 */
+.skip-loading-btn {
+    padding: 8px 24px;
+    background: rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 20px;
+    color: #666;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 10px;
+}
+
+.skip-loading-btn:hover {
+    background: rgba(0, 0, 0, 0.1);
+    color: #333;
+    transform: translateY(-1px);
+}
+
+.skip-loading-btn:active {
+    transform: translateY(0);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .page-loading-content {
+        padding: 20px;
+        max-width: 90%;
+    }
+    
+    .loading-text {
+        font-size: 1.5rem;
+    }
+    
+    .loading-progress-container {
+        width: 250px;
+    }
+}
+
+@media (max-width: 480px) {
+    .loading-text {
+        font-size: 1.2rem;
+    }
+    
+    .loading-progress-container {
+        width: 200px;
+    }
+    
+    .loading-spinner {
+        width: 30px;
+        height: 30px;
+    }
+}
+
+/* 暗色主题支持 */
+@media (prefers-color-scheme: dark) {
+    #page-loading-container {
+        background: rgba(0, 0, 0, 0.95);
+    }
+    
+    .loading-text {
+        color: #fff;
+    }
+    
+    .text-shimmer {
+        background: linear-gradient(
+            90deg,
+            transparent 0%,
+            transparent 40%,
+            #fff 50%,
+            transparent 60%,
+            transparent 100%
+        );
+    }
+    
+    .loading-progress-container {
+        background: rgba(255, 255, 255, 0.1);
+    }
+    
+    .skip-loading-btn {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.2);
+        color: #ccc;
+    }
+    
+    .skip-loading-btn:hover {
+        background: rgba(255, 255, 255, 0.2);
+        color: #fff;
+    }
+}

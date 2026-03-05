@@ -1,0 +1,561 @@
+/* =========================================
+   基础变量与重置 (新中式国风色板)
+========================================= */
+:root {
+    --color-bg-dark: #0d0f15;       /* 檀木黑 */
+    --color-text-main: #e8dcc5;     /* 宣纸色 */
+    --color-text-gold: #d2b48c;     /* 沉香色 */
+    --color-accent-gold: #daa520;   /* 琥珀金 */
+    --color-border-gold: rgba(210, 180, 140, 0.25);
+    --color-panel-bg: rgba(28, 25, 23, 0.65); /* 沉香木半透 */
+    
+    --font-serif: "KaiTi", "STKaiti", "SimSun", serif;
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    
+    --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.3);
+    --glass-blur: blur(16px);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-serif);
+    background-color: var(--color-bg-dark);
+    background-image: 
+        radial-gradient(circle at 15% 15%, rgba(210, 180, 140, 0.04) 0%, transparent 40%),
+        radial-gradient(circle at 85% 85%, rgba(100, 120, 140, 0.04) 0%, transparent 40%),
+        linear-gradient(135deg, #0a0c12 0%, #0d0f15 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 30px 20px;
+    color: var(--color-text-main);
+    overflow-x: hidden;
+    position: relative;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* 竹叶/暗纹 背景装饰 */
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20,20 C25,15 35,25 40,20 C45,15 55,25 60,20 C65,15 75,25 70,30 C65,35 75,45 70,50 C65,55 75,65 65,60 C55,55 45,65 40,60 C35,55 25,65 20,60 C15,55 5,65 10,55 C15,45 5,35 10,30 C15,25 5,15 20,20 Z' fill='none' stroke='rgba(210, 180, 140, 0.03)' stroke-width='1'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* =========================================
+   全局组件 (返回按钮、模态框等)
+========================================= */
+.back-home {
+    position: absolute;
+    left: 25px;
+    top: 25px;
+    text-decoration: none;
+    color: var(--color-text-gold);
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-sans);
+    transition: transform 0.3s ease, color 0.3s ease;
+    z-index: 10;
+}
+.back-home:hover {
+    color: var(--color-accent-gold);
+    transform: translateX(-3px);
+}
+
+/* =========================================
+   头部样式 (更通透的琉璃质感)
+========================================= */
+header {
+    width: 100%;
+    max-width: 800px;
+    text-align: center;
+    margin-bottom: 40px;
+    padding: 35px 20px;
+    background: var(--color-panel-bg);
+    border-radius: 24px;
+    box-shadow: var(--shadow-soft);
+    border: 1px solid var(--color-border-gold);
+    backdrop-filter: var(--glass-blur);
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+}
+
+/* 顶部流光金线 */
+header::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, var(--color-accent-gold), transparent);
+    opacity: 0.6;
+}
+
+h1 {
+    font-size: 2.8rem;
+    margin-bottom: 12px;
+    color: var(--color-text-gold);
+    letter-spacing: 4px;
+    font-weight: 500;
+    text-shadow: 0 4px 12px rgba(210, 180, 140, 0.2);
+}
+
+header p {
+    font-size: 1.1rem;
+    opacity: 0.8;
+    color: var(--color-text-main);
+    letter-spacing: 1px;
+}
+
+/* 登录状态区 */
+#loginStatus {
+    margin-top: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 20px;
+    background: rgba(218, 165, 32, 0.08);
+    border-radius: 30px;
+    border: 1px solid rgba(218, 165, 32, 0.15);
+    font-family: var(--font-sans);
+}
+
+#loginMessage {
+    color: var(--color-text-main);
+    font-size: 0.95rem;
+}
+
+#loginRedirectLink {
+    color: var(--color-accent-gold);
+    text-decoration: none;
+    font-weight: 600;
+    transition: text-shadow 0.3s ease;
+}
+#loginRedirectLink:hover {
+    text-shadow: 0 0 8px rgba(218, 165, 32, 0.4);
+}
+
+/* =========================================
+   主容器布局
+========================================= */
+.lottery-container {
+    width: 100%;
+    max-width: 800px;
+    background: var(--color-panel-bg);
+    border-radius: 30px;
+    padding: 40px;
+    box-shadow: var(--shadow-soft);
+    border: 1px solid var(--color-border-gold);
+    backdrop-filter: var(--glass-blur);
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 35px;
+}
+
+/* =========================================
+   转盘核心区域 (玉石发光质感)
+========================================= */
+.wheel-container {
+    position: relative;
+    width: min(75vw, 340px);
+    height: min(75vw, 340px);
+    margin: 0 auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* 转盘背后的柔和光晕 */
+.wheel-container::after {
+    content: '';
+    position: absolute;
+    width: 110%;
+    height: 110%;
+    background: radial-gradient(circle, rgba(210, 180, 140, 0.15) 0%, transparent 70%);
+    z-index: -1;
+    border-radius: 50%;
+    filter: blur(20px);
+}
+
+.svg-wheel-container {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 6px solid rgba(210, 180, 140, 0.3);
+    background: radial-gradient(circle at center, #f5f5dc 0%, #e6dcbe 50%, #d2b48c 100%);
+    box-shadow: 
+        inset 0 0 20px rgba(0, 0, 0, 0.1),
+        0 10px 30px rgba(0, 0, 0, 0.3);
+    transition: transform 4s cubic-bezier(0.2, 0.8, 0.2, 1);
+    z-index: 1;
+    overflow: hidden;
+    will-change: transform;
+}
+
+.lottery-sector {
+    stroke: rgba(210, 180, 140, 0.5);
+    stroke-width: 0.5;
+}
+
+.lottery-text {
+    fill: #3e2723; /* 深褐色文字使其在浅色背景上更清晰 */
+    font-family: var(--font-serif);
+    font-size: 15px;
+    font-weight: 600;
+    text-anchor: middle;
+    dominant-baseline: middle;
+}
+
+/* 毛笔尖指针 (重塑得更立体精致) */
+.wheel-pointer {
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 24px;
+    height: 65px;
+    background: linear-gradient(to bottom, #daa520 0%, #8b4513 60%, #3e2723 100%);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+    z-index: 15;
+    pointer-events: none;
+    clip-path: polygon(20% 0%, 80% 0%, 100% 20%, 50% 100%, 0% 20%);
+}
+
+.wheel-pointer::before {
+    content: '';
+    position: absolute;
+    top: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 34px;
+    height: 12px;
+    background: var(--color-text-gold);
+    border-radius: 6px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+
+/* =========================================
+   操作控制区 (印章按钮)
+========================================= */
+.control-panel {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+
+/* 印章风格抽奖按钮 */
+#drawButton {
+    background: linear-gradient(135deg, #c74c3e 0%, #8a2b22 100%); /* 朱砂红 */
+    color: var(--color-text-main);
+    border: 1px solid rgba(255,255,255,0.1);
+    padding: 0;
+    width: 200px;
+    height: 56px;
+    font-size: 1.25rem;
+    font-weight: 600;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 
+        0 8px 20px rgba(138, 43, 34, 0.3),
+        inset 0 2px 0 rgba(255, 255, 255, 0.15);
+    font-family: var(--font-serif);
+    letter-spacing: 4px;
+    position: relative;
+    overflow: hidden;
+}
+
+#drawButton::after {
+    content: '';
+    position: absolute;
+    inset: 2px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    pointer-events: none;
+}
+
+#drawButton:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 25px rgba(138, 43, 34, 0.4);
+    filter: brightness(1.1);
+}
+
+#drawButton:active:not(:disabled) {
+    transform: translateY(1px);
+    box-shadow: 0 4px 10px rgba(138, 43, 34, 0.3);
+}
+
+#drawButton:disabled {
+    background: #4a4a4a;
+    box-shadow: none;
+    color: #888;
+    cursor: not-allowed;
+}
+
+/* 管理地址按钮 */
+.action-btn-outline {
+    background: transparent;
+    color: var(--color-text-gold);
+    border: 1px solid var(--color-text-gold);
+    padding: 10px 24px;
+    border-radius: 30px;
+    cursor: pointer;
+    font-family: var(--font-serif);
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.action-btn-outline:hover {
+    background: rgba(210, 180, 140, 0.1);
+    transform: translateY(-1px);
+}
+
+.lottery-info {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+}
+
+.draw-count {
+    font-size: 1.05rem;
+    color: var(--color-text-gold);
+    padding: 8px 20px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 20px;
+    border: 1px solid rgba(210, 180, 140, 0.15);
+}
+
+/* =========================================
+   名单与记录区
+========================================= */
+.lists-wrapper {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 25px;
+    width: 100%;
+}
+
+.winner-scroll-container, .draw-records {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 16px;
+    border: 1px solid var(--color-border-gold);
+    overflow: hidden;
+    height: 220px;
+    display: flex;
+    flex-direction: column;
+}
+
+.section-header {
+    background: rgba(210, 180, 140, 0.05);
+    padding: 15px;
+    text-align: center;
+    border-bottom: 1px solid var(--color-border-gold);
+}
+
+.section-header h3 {
+    color: var(--color-text-gold);
+    font-size: 1.1rem;
+    font-weight: 500;
+    letter-spacing: 1px;
+}
+
+.winner-scroll-content {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+}
+
+.winner-scroll-list {
+    position: absolute;
+    width: 100%;
+    animation: scrollWinners 12s linear infinite;
+}
+
+.winner-item, .record-item {
+    padding: 12px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    font-size: 0.9rem;
+    font-family: var(--font-sans);
+    color: #ccc;
+    display: flex;
+    justify-content: space-between;
+}
+
+.winner-item.win-1, .record-item.win {
+    color: var(--color-accent-gold);
+    background: linear-gradient(90deg, rgba(218, 165, 32, 0.08) 0%, transparent 100%);
+    border-left: 3px solid var(--color-accent-gold);
+}
+
+.draw-records .records-content {
+    flex: 1;
+    overflow-y: auto;
+}
+
+/* 现代滚动条 */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { 
+    background: rgba(210, 180, 140, 0.2); 
+    border-radius: 10px; 
+}
+::-webkit-scrollbar-thumb:hover { background: rgba(210, 180, 140, 0.4); }
+
+@keyframes scrollWinners {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-50%); }
+}
+
+/* =========================================
+   模态框 (优雅浮出)
+========================================= */
+.result-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 12, 16, 0.85);
+    backdrop-filter: blur(8px);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    opacity: 0;
+    animation: fadeIn 0.3s forwards;
+}
+
+@keyframes fadeIn {
+    to { opacity: 1; }
+}
+
+.modal-content {
+    background: var(--color-panel-bg);
+    padding: 40px;
+    border-radius: 24px;
+    text-align: center;
+    box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+    border: 1px solid var(--color-border-gold);
+    width: 90%;
+    max-width: 420px;
+    position: relative;
+    transform: translateY(20px);
+    animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes slideUp {
+    to { transform: translateY(0); }
+}
+
+.modal-content h2 {
+    color: var(--color-text-gold);
+    font-size: 1.8rem;
+    margin-bottom: 20px;
+    letter-spacing: 2px;
+}
+
+.modal-content p {
+    font-size: 1.1rem;
+    color: var(--color-text-main);
+    margin-bottom: 30px;
+    line-height: 1.6;
+    font-family: var(--font-sans);
+}
+
+.modal-btn-primary {
+    background: linear-gradient(135deg, #d2b48c 0%, #daa520 100%);
+    color: #1a1a1a;
+    border: none;
+    padding: 12px 36px;
+    border-radius: 30px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.modal-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(218, 165, 32, 0.3);
+}
+
+/* 表单专属样式 */
+.form-group {
+    margin-bottom: 18px;
+    text-align: left;
+}
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--color-text-gold);
+    font-size: 0.95rem;
+}
+.form-input {
+    width: 100%;
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--color-border-gold);
+    border-radius: 8px;
+    color: var(--color-text-main);
+    font-family: var(--font-sans);
+    transition: border-color 0.3s;
+}
+.form-input:focus {
+    outline: none;
+    border-color: var(--color-accent-gold);
+}
+.btn-group {
+    display: flex;
+    gap: 15px;
+    margin-top: 25px;
+}
+.modal-btn-secondary {
+    flex: 1;
+    background: rgba(255,255,255,0.1);
+    color: var(--color-text-main);
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+.modal-btn-secondary:hover { background: rgba(255,255,255,0.15); }
+.modal-btn-submit {
+    flex: 1;
+    background: linear-gradient(135deg, #c74c3e 0%, #8a2b22 100%);
+    color: #fff;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+/* =========================================
+   响应式适配
+========================================= */
+@media (max-width: 768px) {
+    .lists-wrapper {
+        grid-template-columns: 1fr;
+    }
+    .lottery-container {
+        padding: 30px 20px;
+        border-radius: 20px;
+    }
+    h1 { font-size: 2.2rem; }
+    header { padding: 25px 15px; margin-bottom: 25px; }
+    #drawButton { width: 180px; height: 50px; font-size: 1.1rem; }
+    .back-home { top: 15px; left: 15px; font-size: 13px; }
+}

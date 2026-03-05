@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冠恩推荐 | 音乐·电影·书籍</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        :root {
+            --primary-color: #3a506b;
+            --secondary-color: #5bc0be;
+            --accent-color: #f9c74f;
+            --light-color: #f8f9fa;
+            --dark-color: #1c2541;
+            --text-color: #333;
+            --text-light: #6c757d;
+            --transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            --shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            --shadow-hover: 0 15px 35px rgba(0, 0, 0, 0.15);
+            --radius: 16px;
+        }
+        
+        body {
+            background-color: #fefefe;
+            color: var(--text-color);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* 头部样式 */
+        header {
+            background: url('../assets/images/resonance/gedaiwawa.png') center/cover no-repeat;
+            color: white;
+            padding: 6rem 0 0 0; /* 移除底部内边距，给波浪留空间 */
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            min-height: 600px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(26, 35, 65, 0.15);
+            backdrop-filter: blur(4px);
+            z-index: 1;
+        }
+        
+        .header-content {
+            position: relative;
+            z-index: 2;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .logo {
+            font-size: 2.8rem;
+            font-weight: 300;
+            letter-spacing: 3px;
+            margin-bottom: 0.5rem;
+            position: relative;
+            display: inline-block;
+        }
+        
+        .logo span {
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+        
+        .tagline {
+            font-size: 1.2rem;
+            font-weight: 300;
+            opacity: 0.9;
+            margin-bottom: 2rem;
+        }
+        
+        /* 波浪动效样式 */
+        .waves-container {
+            position: relative;
+            width: 100%;
+            height: 150px;
+            margin-top: auto; /* 将波浪推到header底部 */
+            overflow: hidden;
+        }
+        
+        .waves {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            bottom: 0;
+            left: 0;
+            z-index: 2;
+        }
+        
+        .waves .parallax > use {
+            animation: move-forever 25s cubic-bezier(.55,.5,.45,.5) infinite;
+            fill: rgba(255, 255, 255, 0.7);
+        }
+        
+        .waves .parallax > use:nth-child(1) {
+            animation-delay: -2s;
+            animation-duration: 7s;
+            opacity: 0.7;
+        }
+        
+        .waves .parallax > use:nth-child(2) {
+            animation-delay: -3s;
+            animation-duration: 10s;
+            opacity: 0.5;
+        }
+        
+        .waves .parallax > use:nth-child(3) {
+            animation-delay: -4s;
+            animation-duration: 13s;
+            opacity: 0.3;
+        }
+        
+        .waves .parallax > use:nth-child(4) {
+            animation-delay: -5s;
+            animation-duration: 20s;
+            opacity: 0.2;
+        }
+        
+        @keyframes move-forever {
+            0% {
+                transform: translate3d(-90px, 0, 0);
+            }
+            100% {
+                transform: translate3d(85px, 0, 0);
+            }
+        }
+        
+        /* 导航样式 */
+        nav {
+            background-color: white;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            background-color: rgba(255, 255, 255, 0.95);
+            transition: all 0.3s ease;
+        }
+
+        /* 移动端菜单按钮 */
+        .mobile-nav-toggle {
+            display: none;
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 56px;
+            height: 56px;
+            background-color: var(--secondary-color);
+            color: white;
+            border-radius: 50%;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 15px rgba(91, 192, 190, 0.4);
+            cursor: pointer;
+            z-index: 1000;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .mobile-nav-toggle:hover {
+            transform: scale(1.1);
+            background-color: var(--dark-color);
+        }
+
+        .mobile-nav-toggle:active {
+            transform: scale(0.9);
+        }
+
+        .mobile-nav-toggle.active {
+            transform: rotate(90deg);
+            background-color: var(--dark-color);
+        }
+        
+        .nav-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .nav-tabs {
+            display: flex;
+            list-style: none;
+        }
+        
+        .nav-tabs li {
+            margin: 0;
+        }
+        
+        .nav-tabs a {
+            display: block;
+            padding: 1.2rem 1.8rem;
+            text-decoration: none;
+            color: var(--text-color);
+            font-weight: 500;
+            transition: var(--transition);
+            position: relative;
+            letter-spacing: 0.5px;
+        }
+        
+        .nav-tabs a:hover {
+            color: var(--secondary-color);
+        }
+        
+        .nav-tabs a.active {
+            color: var(--secondary-color);
+        }
+        
+        .nav-tabs a.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: var(--secondary-color);
+        }
+        
+        /* 内容区样式 */
+        .content-section {
+            padding: 5rem 0;
+        }
+        
+        .section-title {
+            text-align: center;
+            font-size: 2.2rem;
+            font-weight: 300;
+            margin-bottom: 3rem;
+            color: var(--dark-color);
+            position: relative;
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 3px;
+            background-color: var(--secondary-color);
+        }
+        
+        /* 卡片网格样式 - 优化版 */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 2.5rem;
+            margin-bottom: 3rem;
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            transition: var(--transition);
+            height: 100%;
+            position: relative;
+            cursor: pointer;
+            transform-origin: center center;
+            will-change: transform, box-shadow;
+        }
+        
+        /* 卡片悬停放大效果 */
+        .card:hover {
+            transform: translateY(-12px) scale(1.03);
+            box-shadow: var(--shadow-hover);
+            z-index: 10;
+        }
+        
+        /* 卡片点击效果 */
+        .card:active {
+            transform: translateY(-8px) scale(1.01);
+            transition: all 0.1s ease;
+        }
+        
+        .card-img-container {
+            height: 220px;
+            width: 100%;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .card-img {
+            height: 100%;
+            width: 100%;
+            object-fit: cover;
+            display: block;
+            transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        
+        /* 图片悬停放大 */
+        .card:hover .card-img {
+            transform: scale(1.1);
+        }
+        
+        /* 图片类型背景 */
+        .music .card-img-container {
+            background: linear-gradient(135deg, #8a2387, #e94057, #f27121);
+        }
+        
+        .movie .card-img-container {
+            background: linear-gradient(135deg, #2193b0, #6dd5ed);
+        }
+        
+        .book .card-img-container {
+            background: linear-gradient(135deg, #654ea3, #da98b4);
+        }
+        
+        .card-content {
+            padding: 2rem;
+        }
+        
+        .card-category {
+            display: inline-block;
+            padding: 0.4rem 1rem;
+            background-color: var(--light-color);
+            color: var(--text-light);
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+        
+        .card-title {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--dark-color);
+            font-weight: 600;
+            line-height: 1.3;
+            transition: color 0.3s ease;
+        }
+        
+        .card:hover .card-title {
+            color: var(--secondary-color);
+        }
+        
+        .card-description {
+            color: var(--text-light);
+            margin-bottom: 1.5rem;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+        
+        .card-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+            color: var(--text-light);
+            padding-top: 1rem;
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        .card-rating {
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+        
+        /* 卡片悬停时显示的查看详情按钮 */
+        .card-action {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 1.5rem 2rem;
+            background: linear-gradient(to top, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.8) 100%);
+            backdrop-filter: blur(5px);
+            transform: translateY(100%);
+            transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .card:hover .card-action {
+            transform: translateY(0);
+        }
+        
+        .view-details-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0.8rem 1.8rem;
+            background-color: var(--secondary-color);
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(91, 192, 190, 0.3);
+        }
+        
+        .view-details-btn:hover {
+            background-color: var(--dark-color);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(91, 192, 190, 0.4);
+        }
+        
+        /* 详情页面样式 */
+        .detail-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            z-index: 1000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow-y: auto;
+            backdrop-filter: blur(5px);
+        }
+        
+        .detail-modal.active {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .modal-content {
+            background-color: white;
+            border-radius: 20px;
+            max-width: 900px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            background-color: white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem;
+            color: var(--text-color);
+            cursor: pointer;
+            z-index: 10;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .modal-close:hover {
+            background-color: var(--secondary-color);
+            color: white;
+            transform: rotate(90deg);
+        }
+        
+        .modal-header {
+            height: 300px;
+            position: relative;
+            overflow: hidden;
+            border-radius: 20px 20px 0 0;
+        }
+        
+        .modal-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100px;
+            background: linear-gradient(to top, white 0%, transparent 100%);
+        }
+        
+        .modal-header-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .modal-body {
+            padding: 3rem;
+            padding-top: 2rem;
+        }
+        
+        .modal-category {
+            display: inline-block;
+            padding: 0.5rem 1.2rem;
+            background-color: var(--light-color);
+            color: var(--text-light);
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            font-weight: 500;
+        }
+        
+        .modal-title {
+            font-size: 2.2rem;
+            margin-bottom: 1.5rem;
+            color: var(--dark-color);
+            font-weight: 600;
+            line-height: 1.2;
+        }
+        
+        .modal-description {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: var(--text-color);
+            margin-bottom: 2rem;
+        }
+        
+        .modal-meta {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .meta-item {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .meta-label {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            margin-bottom: 0.3rem;
+        }
+        
+        .meta-value {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--dark-color);
+        }
+        
+        .modal-rating {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--accent-color);
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        
+        /* 动画 */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideUp {
+            from { 
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* 页脚样式 */
+        footer {
+            background-color: var(--dark-color);
+            color: white;
+            padding: 2rem 0;
+        }
+        
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 2rem;
+        }
+        
+        .footer-left {
+            text-align: left;
+            flex: 1;
+        }
+        
+        .footer-right {
+            text-align: right;
+            flex: 1;
+            max-width: 500px;
+        }
+        
+        .footer-tagline {
+            opacity: 0.8;
+            margin-bottom: 1rem;
+            font-weight: 300;
+            font-size: 1.1rem;
+        }
+        
+        .copyright {
+            opacity: 0.6;
+            font-size: 0.9rem;
+            font-weight: 300;
+        }
+        
+        .footer-quote {
+            font-style: italic;
+            opacity: 0.7;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        
+        .quote-author {
+            display: block;
+            margin-top: 0.5rem;
+            font-style: normal;
+            font-size: 0.85rem;
+            opacity: 0.6;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .mobile-nav-toggle {
+                display: flex;
+            }
+
+            nav {
+                position: fixed;
+                bottom: 100px;
+                right: 30px;
+                width: auto;
+                background-color: transparent;
+                box-shadow: none;
+                pointer-events: none;
+                z-index: 999;
+                opacity: 0;
+                transform: translateY(20px);
+                transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            }
+
+            nav.active {
+                opacity: 1;
+                transform: translateY(0);
+                pointer-events: auto;
+            }
+
+            .nav-container {
+                padding: 0;
+            }
+
+            .nav-tabs {
+                flex-direction: column;
+                gap: 10px;
+                background: white;
+                padding: 15px;
+                border-radius: 20px;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+                border: 1px solid rgba(0,0,0,0.05);
+            }
+            
+            .nav-tabs a {
+                padding: 0.8rem 1.5rem;
+                text-align: center;
+                border-bottom: none;
+                border-radius: 12px;
+                background: #f8f9fa;
+            }
+            
+            .nav-tabs a.active {
+                background: var(--secondary-color);
+                color: white;
+            }
+            
+            .cards-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+            
+            .logo {
+                font-size: 2.2rem;
+            }
+            
+            .section-title {
+                font-size: 1.8rem;
+            }
+            
+            .modal-body {
+                padding: 2rem;
+            }
+            
+            .modal-title {
+                font-size: 1.8rem;
+            }
+            
+            .card:hover {
+                transform: translateY(-8px) scale(1.02);
+            }
+            
+            /* 移动端波浪调整 */
+            .waves-container {
+                height: 100px;
+            }
+            
+            header {
+                min-height: 500px;
+                padding: 4rem 0 0 0;
+            }
+            
+            /* 移动端页脚调整 */
+            .footer-content {
+                flex-direction: column;
+                gap: 1.5rem;
+            }
+            
+            .footer-left,
+            .footer-right {
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="../index.php" style="position: fixed; top: 30px; left: 30px; z-index: 1000; width: 50px; height: 50px; background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; text-decoration: none; border: 1px solid rgba(255,255,255,0.3); transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.1);" onmouseover="this.style.background='rgba(255,255,255,0.4)'; this.style.transform='scale(1.1)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='scale(1)'" title="返回首页">
+        <i class="fas fa-home" style="font-size: 20px;"></i>
+    </a>
+    <!-- 头部区域 -->
+    <header id="home">
+        <div class="container header-content">
+            <h1 class="logo">世界由故事构成，而非原子。<span></span></h1>
+            <p class="tagline">探索音乐·电影·书籍的精神世界</p>
+        </div>
+        
+        <!-- 波浪动效 -->
+        <div class="waves-container">
+            <svg class="waves" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 24 150 28" preserveAspectRatio="none" shape-rendering="auto">
+                <defs>
+                    <path id="gentle-wave" d="M-160 44c30 0 58-18 88-18s 58 18 88 18 58-18 88-18 58 18 88 18 v44h-352z"></path>
+                </defs>
+                <g class="parallax">
+                    <use xlink:href="#gentle-wave" x="48" y="0"></use>
+                    <use xlink:href="#gentle-wave" x="48" y="3"></use>
+                    <use xlink:href="#gentle-wave" x="48" y="5"></use>
+                    <use xlink:href="#gentle-wave" x="48" y="7"></use>
+                </g>
+            </svg>
+        </div>
+    </header>
+    
+    <!-- 移动端菜单按钮 -->
+    <div class="mobile-nav-toggle" id="mobileNavToggle">
+        <i class="fas fa-th-large"></i>
+    </div>
+
+    <!-- 导航区域 -->
+    <nav id="mainNav">
+        <div class="container nav-container">
+            <ul class="nav-tabs">
+                <li><a href="#" class="nav-link active" data-category="all">全部推荐</a></li>
+                <li><a href="#" class="nav-link" data-category="music">音乐</a></li>
+                <li><a href="#" class="nav-link" data-category="movie">电影</a></li>
+                <li><a href="#" class="nav-link" data-category="book">书籍</a></li>
+            </ul>
+        </div>
+    </nav>
+    
+    <!-- 内容区域 -->
+    <main class="container">
+        <section class="content-section">
+            <h2 class="section-title">今日精选推荐</h2>
+            
+            <div class="cards-grid">
+                <!-- 音乐推荐卡片 -->
+                <div class="card music" data-category="music" data-id="1">
+                    <div class="card-img-container">
+                        <img src="../assets/images/resonance/cold.png" alt="James Blunt" class="card-img">
+                    </div>
+                    <div class="card-content">
+                        <span class="card-category">音乐 · 流行</span>
+                        <h3 class="card-title">Cold</h3>
+                        <p class="card-description">"If you're feeling lonely, I'm feeling lonely too." 这首歌带你走进深情且孤独的音乐世界。</p>
+                        <div class="card-meta">
+                            <span>James Blunt</span>
+                            <div class="card-rating">
+                                <i class="fas fa-star"></i> 9.2
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-action">
+                        <a href="#" class="view-details-btn">
+                            <span>查看详情</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 电影推荐卡片 -->
+                <div class="card movie" data-category="movie" data-id="2">
+                    <div class="card-img-container">
+                        <img src="../assets/images/resonance/xinjichuanyue.png" alt="星际穿越" class="card-img">
+                    </div>
+                    <div class="card-content">
+                        <span class="card-category">电影 · 科幻</span>
+                        <h3 class="card-title">星际穿越</h3>
+                        <p class="card-description">"爱是唯一可以超越时间与空间的东西。" 诺兰导演的硬核科幻神作，震撼视觉与心灵。</p>
+                        <div class="card-meta">
+                            <span>Christopher Nolan</span>
+                            <div class="card-rating">
+                                <i class="fas fa-star"></i> 9.8
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-action">
+                        <a href="#" class="view-details-btn">
+                            <span>查看详情</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 书籍推荐卡片 -->
+                <div class="card book" data-category="book" data-id="3">
+                    <div class="card-img-container">
+                        <img src="../assets/images/resonance/bainiangudu.png" alt="百年孤独" class="card-img">
+                    </div>
+                    <div class="card-content">
+                        <span class="card-category">书籍 · 经典</span>
+                        <h3 class="card-title">百年孤独</h3>
+                        <p class="card-description">"生命中曾经有过的所有灿烂，终究都需要用寂寞来偿还。" 魔幻现实主义的巅峰之作。</p>
+                        <div class="card-meta">
+                            <span>加西亚·马尔克斯</span>
+                            <div class="card-rating">
+                                <i class="fas fa-star"></i> 9.6
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-action">
+                        <a href="#" class="view-details-btn">
+                            <span>查看详情</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 更多卡片 -->
+                <div class="card music" data-category="music" data-id="4">
+                    <div class="card-img-container">
+                        <img src="../assets/images/resonance/dingfuni.png" alt="丁芙妮" class="card-img">
+                    </div>
+                    <div class="card-content">
+                        <span class="card-category">音乐 · 独立</span>
+                        <h3 class="card-title">那些你很冒险的梦</h3>
+                        <p class="card-description">丁芙妮清亮温婉的嗓音，赋予了这首经典歌曲全新的情感表达与共鸣。</p>
+                        <div class="card-meta">
+                            <span>丁芙妮</span>
+                            <div class="card-rating">
+                                <i class="fas fa-star"></i> 9.0
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-action">
+                        <a href="#" class="view-details-btn">
+                            <span>查看详情</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="card movie" data-category="movie" data-id="5">
+                    <div class="card-img-container">
+                        <img src="../assets/images/resonance/tounaotegongdui.png" alt="头脑特工队2" class="card-img">
+                    </div>
+                    <div class="card-content">
+                        <span class="card-category">电影 · 动画</span>
+                        <h3 class="card-title">头脑特工队2</h3>
+                        <p class="card-description">走进青春期少女的内心世界，看各种新情绪如何接管控制中心，既治愈又深刻。</p>
+                        <div class="card-meta">
+                            <span>Disney / Pixar</span>
+                            <div class="card-rating">
+                                <i class="fas fa-star"></i> 9.4
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-action">
+                        <a href="#" class="view-details-btn">
+                            <span>查看详情</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="card book" data-category="book" data-id="6">
+                    <div class="card-img-container">
+                        <img src="../assets/images/resonance/shasiyizhizhigengniao.png" alt="杀死一只知更鸟" class="card-img">
+                    </div>
+                    <div class="card-content">
+                        <span class="card-category">书籍 · 成长</span>
+                        <h3 class="card-title">杀死一只知更鸟</h3>
+                        <p class="card-description">你永远也不可能真正了解一个人，除非你穿上他的鞋子走来走去，站在他的角度考虑问题。</p>
+                        <div class="card-meta">
+                            <span>作者：哈珀·李</span>
+                            <span class="card-rating">★★★★☆</span>
+                        </div>
+                    </div>
+                    <div class="card-action">
+                        <a href="#" class="view-details-btn">
+                            <i class="fas fa-info-circle"></i> 查看详情
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    
+    <!-- 详情模态框 -->
+    <div class="detail-modal" id="detailModal">
+        <div class="modal-content">
+            <div class="modal-close" id="modalClose">
+                <i class="fas fa-times"></i>
+            </div>
+            <div class="modal-header">
+                <img src="" alt="" class="modal-header-img" id="modalImg">
+            </div>
+            <div class="modal-body">
+                <span class="modal-category" id="modalCategory"></span>
+                <h2 class="modal-title" id="modalTitle"></h2>
+                <p class="modal-description" id="modalDescription"></p>
+                
+                <div class="modal-meta">
+                    <div class="meta-item">
+                        <span class="meta-label" id="metaLabel1"></span>
+                        <span class="meta-value" id="metaValue1"></span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label" id="metaLabel2"></span>
+                        <span class="meta-value" id="metaValue2"></span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">评分</span>
+                        <span class="modal-rating" id="modalRating"></span>
+                    </div>
+                </div>
+                
+                <!-- 详情内容区域 -->
+                <div id="modalDetails"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 页脚区域 -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-left">
+                    <p class="footer-tagline">发现艺术与思想的交汇点，让美好作品滋养心灵</p>
+                    <p class="copyright">© 2025 冠恩推荐 | Guanen.top</p>
+                </div>
+                <div class="footer-right">
+                    <p class="footer-quote">人类是充满激情的。没错，医学、法律、商业、工程，这些都是崇高的追求，足以支撑人的一生。但诗歌、美丽、浪漫、爱情，这些才是我们活着的意义。</p>
+                    <span class="quote-author">《死亡诗社》</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+    <script src="../assets/js/resonance.js"></script>
+</body>
+</html>

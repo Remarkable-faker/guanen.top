@@ -1,0 +1,46 @@
+{
+    "max_daily_draws": 7,
+    "book_probability": 0,
+    "reward_pool_enabled": true,
+    "max_total_wins": 0,
+    "last_updated": "2026-02-24 21:09:33",
+    "updated_by": "Admin",
+    "prizes": [
+        {
+            "name": "浮生若梦",
+            "value": "虚浮的人生，如同一场大梦",
+            "probability": 19.4,
+            "is_win": false
+        },
+        {
+            "name": "澄怀观道",
+            "value": "清澄自己的胸怀，以观照宇宙的本源与法则。",
+            "probability": 19.4,
+            "is_win": false
+        },
+        {
+            "name": "书籍一本",
+            "value": "冠恩亲选书籍一本",
+            "probability": 3,
+            "is_win": true
+        },
+        {
+            "name": "和光同尘",
+            "value": "收敛光芒，与世俗尘埃混同",
+            "probability": 19.4,
+            "is_win": false
+        },
+        {
+            "name": "空谷幽兰",
+            "value": "空寂的山谷中，悄然开放的兰花。",
+            "probability": 19.4,
+            "is_win": false
+        },
+        {
+            "name": "冰壶秋月",
+            "value": "冰做的玉壶，秋夜皎洁的明月",
+            "probability": 19.4,
+            "is_win": false
+        }
+    ]
+}

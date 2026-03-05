@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>加载中...</title>
+    <script src="../assets/vendor/react.min.js"></script>
+    <script src="../assets/vendor/react-dom.min.js"></script>
+    <script>
+        // 确保 React 全局变量可用
+        window.React = React;
+        window.ReactDOM = ReactDOM;
+    </script>
+    <script src="../assets/vendor/babel.min.js"></script>
+    
+    <!-- 加载hello动画功能 - 移到head部分以确保优先加载 -->
+    <script src="../assets/js/hello-animation.js"></script>
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/css/pages.css">
+
+</head>
+<body class="loading-page">
+    <div id="loading-ink">
+        <!-- Hello动画容器 - 第一个显示且位于屏幕正中间偏上 -->
+        <div id="hello-animation-container"></div>
+        
+        <!-- 致敬文字 - 这个ID被hello-animation.js使用 -->
+        <div id="quote-text"></div>
+        
+        <!-- 加载进度条 -->
+        <div id="loading-progress">
+            <div id="loading-progress-bar"></div>
+        </div>
+        
+        <!-- 新增文字：宇宙由故事构成，而非原子 -->
+        <div id="story-text">宇宙由故事构成，而非原子</div>
+    </div>
+    <div id="loading-screen-root"></div>
+    
+    <script type="text/babel" src="../assets/js/loading-page-logic.js"></script>
+</body>
+</html>

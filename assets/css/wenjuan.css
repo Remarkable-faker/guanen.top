@@ -1,0 +1,467 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+}
+
+body {
+    background-color: #f8f9fa;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    background-image: linear-gradient(135deg, #f0f8ff 0%, #e4edf5 100%);
+}
+
+.container {
+    max-width: 900px;
+    width: 100%;
+    background-color: white;
+    border-radius: 15px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.header {
+    background: linear-gradient(to right, #2c3e50, #4a90e2);
+    color: white;
+    padding: 30px;
+    text-align: center;
+}
+
+h1 {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+}
+
+.subtitle {
+    font-size: 1.1rem;
+    opacity: 0.9;
+}
+
+.tab-container {
+    display: flex;
+    background-color: #f1f5f9;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.tab {
+    flex: 1;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #64748b;
+    transition: all 0.3s ease;
+    border-bottom: 3px solid transparent;
+}
+
+/* 支持创作者样式 */
+.support-section {
+    text-align: center;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.qr-code-container {
+    margin: 30px auto;
+    max-width: 280px;
+    padding: 15px;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    border: 1px solid #f0f0f0;
+    transition: transform 0.3s ease;
+}
+
+.qr-code-container:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+}
+
+.qr-code {
+    width: 100%;
+    height: auto;
+    border-radius: 12px;
+    display: block;
+}
+
+.support-text {
+    font-size: 1.1rem;
+    color: #4b5563;
+    line-height: 1.8;
+    margin-bottom: 25px;
+}
+
+.support-text p {
+    margin-bottom: 15px;
+}
+
+.wechat-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 16px;
+    background-color: #f0fdf4;
+    color: #16a34a;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-top: 15px;
+}
+
+.tab.active {
+    color: #2c3e50;
+    background-color: white;
+    border-bottom: 3px solid #2c3e50;
+}
+
+.tab:hover:not(.active) {
+    background-color: #e8f0fe;
+    color: #4a90e2;
+}
+
+.content-area {
+    padding: 30px;
+    min-height: 500px;
+}
+
+.tab-content {
+    display: none;
+    animation: fadeIn 0.5s ease;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* 建议页面样式 */
+.suggestion-section {
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.author-note {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 4px solid #3498db;
+    margin-bottom: 25px;
+    font-style: italic;
+    color: #555;
+}
+
+.form-group {
+    margin-bottom: 25px;
+}
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    color: #2c3e50;
+    font-weight: 500;
+}
+
+.suggestion-input, .suggestion-textarea {
+    width: 100%;
+    padding: 14px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: border 0.3s;
+}
+
+.suggestion-input:focus, .suggestion-textarea:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+.suggestion-textarea {
+    min-height: 200px;
+    resize: vertical;
+}
+
+.required::after {
+    content: " *";
+    color: #e74c3c;
+}
+
+.submit-btn {
+    background: linear-gradient(to right, #2c3e50, #4a90e2);
+    color: white;
+    border: none;
+    padding: 18px;
+    font-size: 1.2rem;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 100%;
+    font-weight: 600;
+    margin-top: 10px;
+}
+
+.submit-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 7px 15px rgba(44, 62, 80, 0.3);
+}
+
+.submit-btn:active {
+    transform: translateY(0);
+}
+
+.submit-btn:disabled {
+    background: #cccccc;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.counter {
+    text-align: right;
+    font-size: 14px;
+    color: #7f8c8d;
+    margin-top: 5px;
+}
+
+.suggestion-thank-you {
+    text-align: center;
+    padding: 30px;
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    display: none;
+    margin-top: 20px;
+    animation: fadeIn 0.8s ease;
+}
+
+.suggestion-thank-you.show {
+    display: block;
+}
+
+.suggestion-thank-you h2 {
+    color: #27ae60;
+    font-size: 2rem;
+    margin-bottom: 15px;
+}
+
+.signature {
+    margin-top: 25px;
+    font-style: italic;
+    color: #7f8c8d;
+    font-size: 1.2rem;
+}
+
+.signature .name {
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+/* 评分页面样式 */
+.rating-section {
+    text-align: center;
+}
+
+.instruction {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #333;
+    line-height: 1.6;
+    font-size: 1.1rem;
+}
+
+.highlight {
+    color: #2c3e50;
+    font-weight: bold;
+}
+
+.score-input-container {
+    margin-bottom: 30px;
+}
+
+.input-label {
+    display: block;
+    margin-bottom: 15px;
+    font-size: 1.3rem;
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+.score-input {
+    width: 150px;
+    height: 150px;
+    font-size: 4rem;
+    text-align: center;
+    border: 4px solid #ddd;
+    border-radius: 15px;
+    font-weight: bold;
+    color: #2c3e50;
+    transition: all 0.3s ease;
+    outline: none;
+    display: block;
+    margin: 0 auto;
+    -moz-appearance: textfield;
+}
+
+.score-input::-webkit-outer-spin-button,
+.score-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.score-input:focus {
+    border-color: #2c3e50;
+    box-shadow: 0 0 0 3px rgba(44, 62, 80, 0.2);
+}
+
+.score-input.correct {
+    border-color: #2ecc71;
+    background-color: #f9fff9;
+    color: #2ecc71;
+}
+
+.score-input.wrong {
+    border-color: #e74c3c;
+    background-color: #fff9f9;
+    color: #e74c3c;
+    animation: shake 0.5s;
+}
+
+@keyframes shake {
+    0%, 100% {transform: translateX(0);}
+    20%, 60% {transform: translateX(-10px);}
+    40%, 80% {transform: translateX(10px);}
+}
+
+.rating-message {
+    text-align: center;
+    margin-top: 15px;
+    min-height: 25px;
+    font-weight: 600;
+    font-size: 1.2rem;
+}
+
+.success {
+    color: #2ecc71;
+}
+
+.error {
+    color: #e74c3c;
+}
+
+.rating-result {
+    margin-top: 30px;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    background-color: #f8f9fa;
+    display: none;
+}
+
+.rating-result.show {
+    display: block;
+}
+
+.result-title {
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+    color: #2c3e50;
+}
+
+.result-score {
+    font-size: 4rem;
+    font-weight: bold;
+    color: #2ecc71;
+    margin-bottom: 10px;
+}
+
+.result-text {
+    font-size: 1.2rem;
+    color: #555;
+    line-height: 1.5;
+}
+
+.footer {
+    text-align: center;
+    padding: 20px;
+    color: #777;
+    font-size: 0.9rem;
+    border-top: 1px solid #eee;
+    background-color: #f8f9fa;
+}
+
+.system-message {
+    padding: 12px;
+    border-radius: 8px;
+    margin-top: 15px;
+    border-left: 4px solid;
+    display: none;
+}
+
+.system-message.show {
+    display: block;
+}
+
+.error-message {
+    color: #e74c3c;
+    background-color: #fdf2f2;
+    border-color: #e74c3c;
+}
+
+.success-message {
+    color: #27ae60;
+    background-color: #f0f9f0;
+    border-color: #27ae60;
+}
+
+.loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255,255,255,.3);
+    border-radius: 50%;
+    border-top-color: #fff;
+    animation: spin 1s ease-in-out infinite;
+    margin-right: 10px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.icon {
+    margin-right: 8px;
+    color: #2c3e50;
+}
+
+@media (max-width: 768px) {
+    .container {
+        max-width: 95%;
+    }
+    
+    h1 {
+        font-size: 2rem;
+    }
+    
+    .content-area {
+        padding: 20px;
+    }
+    
+    .score-input {
+        width: 120px;
+        height: 120px;
+        font-size: 3.5rem;
+    }
+    
+    .tab {
+        padding: 15px;
+        font-size: 1rem;
+    }
+}
